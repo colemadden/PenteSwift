@@ -1,0 +1,61 @@
+<svg width="1024" height="1024" viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <!-- Gradients for depth -->
+    <radialGradient id="whiteStoneGradient">
+      <stop offset="20%" stop-color="#FFFFFF"/>
+      <stop offset="100%" stop-color="#E0E0E0"/>
+    </radialGradient>
+    
+    <radialGradient id="blackStoneGradient">
+      <stop offset="20%" stop-color="#404040"/>
+      <stop offset="100%" stop-color="#000000"/>
+    </radialGradient>
+    
+    <!-- Board gradient for depth -->
+    <linearGradient id="boardGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#E5B989"/>
+      <stop offset="100%" stop-color="#C49660"/>
+    </linearGradient>
+    
+    <!-- Shadow filters -->
+    <filter id="stoneShadow">
+      <feGaussianBlur in="SourceAlpha" stdDeviation="15"/>
+      <feOffset dx="0" dy="20" result="offsetblur"/>
+      <feFlood flood-color="#000000" flood-opacity="0.4"/>
+      <feComposite in2="offsetblur" operator="in"/>
+      <feMerge>
+        <feMergeNode/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+  
+  <!-- Background -->
+  <rect width="1024" height="1024" rx="225" fill="url(#boardGradient)"/>
+  
+  <!-- Subtle grid lines for context -->
+  <g stroke="#B8956A" stroke-width="3" opacity="0.3">
+    <line x1="200" y1="0" x2="200" y2="1024"/>
+    <line x1="400" y1="0" x2="400" y2="1024"/>
+    <line x1="600" y1="0" x2="600" y2="1024"/>
+    <line x1="800" y1="0" x2="800" y2="1024"/>
+    <line x1="0" y1="300" x2="1024" y2="300"/>
+    <line x1="0" y1="500" x2="1024" y2="500"/>
+    <line x1="0" y1="700" x2="1024" y2="700"/>
+  </g>
+  
+  <!-- Black stone (back) -->
+  <ellipse cx="450" cy="380" rx="200" ry="195" fill="url(#blackStoneGradient)" filter="url(#stoneShadow)"/>
+  
+  <!-- White stone (front) -->
+  <ellipse cx="574" cy="644" rx="260" ry="255" fill="url(#whiteStoneGradient)" filter="url(#stoneShadow)"/>
+  
+  <!-- Highlight on white stone -->
+  <ellipse cx="520" cy="590" rx="80" ry="60" fill="#FFFFFF" opacity="0.8"/>
+  
+  <!-- Subtle highlight on black stone -->
+  <ellipse cx="400" cy="330" rx="60" ry="45" fill="#666666" opacity="0.6"/>
+  
+  <!-- Edge definition for white stone -->
+  <ellipse cx="574" cy="644" rx="260" ry="255" fill="none" stroke="#CCCCCC" stroke-width="4"/>
+</svg>

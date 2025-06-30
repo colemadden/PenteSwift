@@ -1,0 +1,322 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1" />
+<title>Pente&reg; Rules</title>
+<script language=JavaScript src="../../scripts/wz_jsgraphics.js"></script>
+<script language=JavaScript src="../../scripts/drawBarGraph.js"></script>
+<script language=JavaScript>
+
+var DELTA = 25
+var offset = DELTA/2
+	
+function stone(row,col,color)
+{
+	this.row = row
+	this.col = col
+	this.color = color
+}
+
+function drawStone(canvas,row,col,color)
+{
+	var STONE_SIZE = 22
+	var BORDER_SIZE = 4
+	
+	canvas.setColor("black")	
+	canvas.fillOval(col*DELTA,row*DELTA,STONE_SIZE,STONE_SIZE)
+	canvas.setColor(color)
+	canvas.fillOval(col*DELTA+BORDER_SIZE/2,row*DELTA+BORDER_SIZE/2, 
+	                STONE_SIZE-BORDER_SIZE,STONE_SIZE-BORDER_SIZE)
+	canvas.paint()
+}
+
+function drawGrid(canvas,nRows,nCols)
+{
+	 canvas.setColor("black")
+
+	// Draw vertical lines
+	for(var i=0; i<nCols; i++)
+		canvas.drawLine(offset+i*DELTA,-offset,offset+i*DELTA,offset+nRows*DELTA)
+	
+	// Draw horizontal lines
+	for(var j=0; j<nRows; j++)
+		canvas.drawLine(-offset,offset+j*DELTA, offset+nCols*DELTA,offset+j*DELTA)
+
+	canvas.paint()
+}
+
+function drawBoard(canvas,nRows,nCols,stones)
+{
+  var jg = new jsGraphics(canvas)
+  
+//  jg.setColor("#ffffff")
+  jg.setColor("lightseagreen")
+
+//  jg.fillRect(0,0,90,45)
+  jg.fillRect(0,0,canvas.width+20,canvas.height+20)
+  
+  drawGrid(jg,nRows,nCols)
+  for(var i=0; i<stones.length; i++)
+	  drawStone(jg,stones[i].row,stones[i].col,stones[i].color)
+}
+
+</script>
+<style type="text/css" title="defaultTitle">
+<!--
+body {font-family:Verdana, Arial, Helvetica, sans-serif}
+}
+.style4 {font-size: 24px}
+.style6 {font-size: 12px}
+-->
+</style>
+</head>
+
+<body>
+
+<h1 align="left">PENTE<span class="style4"><sup>&reg;</sup></span></h1>
+<h3>BASIC RULES FOR TWO PLAYERS</h3>
+  [<i>adapted from the rules provided by Hasbro</i>]
+  </p>
+
+<p><b>Equipment</b> - a PENTE<sup>&reg;</sup> board and an ample supply of PENTE<sup>&reg;</sup> stones,
+  one color per player. </p>
+<h3>HOW TO PLAY </h3>
+<p>Start with the board completely clear of stones. The first player (chosen
+  by chance) begins the game by playing one stone on the center point. Thereafter
+  the players take turns playing their stones, one at a time, on any empty intersection.
+  The stones are played on the intersections of the lines (including the
+edge of the board), rather than in the squares. </p>
+<p>A move is completed when the stone is released. Once played, a stone cannot
+  be moved again (except when re&shy;moved by a capture, as is explained below). </p>
+<p>The players simply take turns adding new stones to the board, building up the
+  position, until one person wins as follows:</p>
+<h3>OBJECT OF THE GAME</h3>
+<p>There are two ways to win in PENTE<sup>&reg;</sup>: </p>
+<ol type="I">
+  <li><b>Win by getting five</b> (or more) <b>stones in a row</b>, either
+    horizontally, vertically, or diagonally, with no empty points between them.    </li>
+  <li><b>Win by capturing five pairs</b> (or more) of the opponent's stones. </li>
+</ol>
+<p>The first player to achieve either of the above objectives wins the game. </p>
+<p>
+There now follows:   </p>
+<ol type="I">
+  <li>
+    An explanation of captures.</li>
+  <li>An explanation of five-in-a-row.</li>
+  <li> Answers to common questions. </li>
+</ol>
+<table border="1" cellspacing="0" cellpadding="4">
+  <tr>
+    <th bgcolor="#CCCCCC" scope="col">
+      <div align="LEFT">*For simplicity, we will require each move to be on a square adjacent to some other piece on the board already.      </div>
+    </th>
+  </tr>
+</table>
+<p>Whenever the opponent has two stones (and only two) which are adjacent to
+  each other, they are vulnerable to capture. The pair can be captured by bracketing
+  its two ends with one's own stones. For example:<br />
+</p>
+<table border="0" cellspacing="0" cellpadding="4">
+  <tr>
+    <th valign="top" scope="col">
+      <p>BEFORE</p>
+      <div id="canvasBefore" style="position:relative;height:70px;width:120px;"></div>
+    </th>
+    <td align="left" valign="top" scope="col">
+      <p><img width="67" height="33" src="Pente_lookydere.gif" /></p>
+      <p>Black plays on the point indicated by the arrow, bracketing White's pair
+        of stones. The pair is thus captured and removed from the board, leaving
+        the diagrammed final position.</p>
+    </td>
+    <td align="left" valign="top" scope="col">
+      <p><b>AFTER</b></p>
+      <div id="canvasAfter" style="position:relative;height:70px;width:120px;"></div>
+    </td>
+  </tr>
+</table>
+<p>Captures can be made along diagonal as well as horizontal and vertical lines.
+  All four stones involved must be in a straight consecutive line. As soon as
+  the capturing play is made, the captured stones are removed from the grid and
+  placed in view along the border so that both players can see how many stones
+have been taken. </p>
+<p><b>Moving into a captured position</b> - A stone may legally be played onto any empty
+  intersection, even if that point has been previously occupied, and even if
+  it forms a pair between two enemy stones. Thus White's move in the diagram
+below is &quot;safe,&quot; and no stones are removed from the board. </p>
+<table border="0" cellspacing="0" cellpadding="4">
+  <tr>
+    <th scope="col">
+      <p>BEFORE</p>
+      <div id="canvasB_S" style="position:relative;height:70px;width:120px;"></div>
+    </th>
+    <th width="150" align="left" valign="top" scope="col"><img src="Pente_lookydere_white.gif" width="67" height="33" /><span class="style6">SAFE </span></th>
+    <th scope="col">
+      <p>AFTER</p>
+      <div id="canvasA_S" style="position:relative;height:70px;width:120px;"></div>
+    </th>
+  </tr>
+</table>
+<p><b>Multiple captures</b> -It is legal to capture two or more pairs with a single
+move, as in this example:</p>
+<table border="0" cellspacing="0" cellpadding="4">
+  <tr>
+    <th valign="top" scope="col">
+      <p>BEFORE </p>
+      <div id="canvasB_D" style="position:relative;height:70px;width:120px;"></div>
+    </th>
+    <td>
+      <p><img width="67" height="33" src="Pente_lookydere.gif" /></p>
+      <p>Black's move brackets and captures two separate pairs
+        of White's stones.</p>
+    </td>
+    <td>
+      <p><b>AFTER </b></p>
+      <div id="canvasA_D" style="position:relative;height:70px;width:120px;"></div>
+    </td>
+  </tr>
+</table>
+<p>&nbsp;</p>
+<h3>II. FIVE IN A ROW</h3>
+<p>The <strong>five-in-a-row
+    must be in a straight consecutive line </strong>to win. It may run <strong>in
+    any direction, </strong>horizontally, vertically, or diagonally. It need
+not be exactly five - six or more stones in a row win as well. </p>
+<blockquote><div id="canvas5" style="position:relative;height:70px;width:150px;"></div></blockquote>
+<p><strong>NOTE: </strong>If a player has obtained the advantage of having an
+  unblocked four-in-a-row (as in the diagram below), called a &quot;tessera,&quot; (s)he
+  has practically won the game &#8212; whichever end White blocks, Black will
+  play on the other end and achieve the winning five-in-a-row. </p>
+<blockquote><div id="canvas4" style="position:relative;height:70px;width:150px;"></div></blockquote>
+<p>Therefore, if one's opponent has an &quot;open three&quot; (as below), one
+  end of the three should be blocked immediately to prevent the formation of
+the deadly tessera. </p>
+<blockquote><div id="canvas3" style="position:relative;height:70px;width:120px;"></div></blockquote>
+<p>This general axiom, that one must block an open three, applies unless a
+  player has something better of his own - like a move to make four, or a good
+  capture on this move or the next that or moves men from the row or poses a
+  superior threat. Even if the three stones are not all adjacent, as below, they
+  must still be blocked to stop the win. All three shaded circles in the diagram
+suggest possible blocking moves.</p>
+<blockquote><div id="canvas6" style="position:relative;height:70px;width:180px;"></div></blockquote>
+<h3>III. ANSWERS TO COMMON QUESTIONS ABOUT PENTE<sup>&reg;</sup></h3>
+<p><strong>Does six-in-a-row also win? </strong><br />
+Yes, six or more stones in a row wins the game as well.</p>
+<p><br />
+  <strong>Can a stone be played on the edge of the board? </strong><br />
+  Yes, one may play on the very edge of the grid; and also inside the four hemispheres,
+  each of which covers three &quot;in&shy;visible&quot; intersections that can
+be used. </p>
+<p><br />
+  <strong>Can I break up a five-in-a-row by capturing one of its stones? </strong><br />
+  No, when a player achieves a Pente, 5-in-a-row, he wins immediately. It does
+  not matter if the opponent can &quot;capture across&quot; the Pente, even if
+that would be his fifth capture.</p>
+<p><br />
+  <strong>What happens if I form a pair between two enemy stones? Are they captured? </strong><br />
+  No, you would not &quot;capture yourself&quot; by moving into a captured
+position. Instead, the pair would remain on the board. See earlier example.</p>
+<p> <br />
+  <strong>After making a capturing move, do I have the option of leaving the
+  captured stones on the board? </strong><br />
+  No. The captured stones must be removed. However, if both players overlook
+  that a move is a capture only to realize it later in the game, the   &quot;captured&quot; stones
+remain on the board.</p>
+<p> <br />
+  <strong>What happens if the position gets disrupted? </strong><br />
+Move carefully, as he always loses who drops the pieces and messes up the board!</p>
+<p> <br />
+  <strong>Who moves first? </strong><br />
+  The first player has a slight advantage. Therefore some method of chance should
+  be used to decide who plays first, in the first game. In following games, the
+  loser of the last game moves first. The advantage of the first move can be
+eliminated by using the tournament rule.</p>
+<p><br />
+  <strong>Can PENTE<sup>&reg;</sup> be played with more than two people? </strong><br />
+  Yes! You can play Partners with two teams of two players, alternating turns,
+  using the same rules as in Basic two-player PENTE<sup>&reg;</sup>. </p>
+<p>&nbsp; </p>
+<script language=JavaScript>
+  var stonesBefore = new Array( 
+ 	new stone(0,0,"black"),
+ 	new stone(0,1,"white"),
+  	new stone(0,2,"white")
+  )
+  drawBoard("canvasBefore",1,4,stonesBefore)
+ 
+  var stonesAfter = new Array( 
+ 	new stone(0,0,"black"),
+  	new stone(0,3,"black")
+  )
+  drawBoard("canvasAfter",1,4,stonesAfter)
+
+  var stonesBefore_SAFE = new Array( 
+ 	new stone(0,0,"black"),
+ 	new stone(0,1,"white"),
+  	new stone(0,3,"black")
+  )
+  drawBoard("canvasB_S",1,4,stonesBefore_SAFE)
+
+ 
+  var stonesAfter_SAFE = new Array( 
+ 	new stone(0,0,"black"),
+ 	new stone(0,1,"white"),
+  	new stone(0,2,"white"),
+  	new stone(0,3,"black")
+  )
+  drawBoard("canvasA_S",1,4,stonesAfter_SAFE)
+  
+  var stonesBefore_double = new Array( 
+ 	new stone(0,0,"black"),
+ 	new stone(0,1,"white"),
+  	new stone(0,2,"white"),
+  	new stone(1,2,"white"),
+  	new stone(2,1,"white"),
+  	new stone(3,0,"black")
+  )
+  drawBoard("canvasB_D",3,4,stonesBefore_double)
+  
+   var stonesAfter_double = new Array( 
+ 	new stone(0,0,"black"),
+ 	new stone(3,0,"black"),
+  	new stone(0,3,"black")
+  )
+  drawBoard("canvasA_D",3,4,stonesAfter_double)
+  
+ var stones3 = new Array( 
+ 	new stone(0,0,"black"),
+ 	new stone(0,1,"black"),
+  	new stone(0,2,"black")
+  )
+  drawBoard("canvas3",1,3,stones3)
+  
+ var stones4 = new Array( 
+ 	new stone(0,0,"black"),
+ 	new stone(0,1,"black"),
+  	new stone(0,2,"black"),
+  	new stone(0,3,"black")
+  )
+  drawBoard("canvas4",1,4,stones4)
+  
+ var stones5 = new Array( 
+ 	new stone(0,0,"black"),
+ 	new stone(0,1,"black"),
+  	new stone(0,2,"black"),
+  	new stone(0,3,"black"),
+  	new stone(0,4,"black")
+  )
+  drawBoard("canvas5",1,5,stones5)
+
+ var stones6 = new Array( 
+ 	new stone(0,0,"lightgrey"),
+ 	new stone(0,1,"black"),
+  	new stone(0,2,"black"),
+  	new stone(0,3,"lightgrey"),
+  	new stone(0,4,"black"),
+  	new stone(0,5,"lightgrey")
+  )
+  drawBoard("canvas6",1,6,stones6)
+</script>
+
+</body>
+</html>
