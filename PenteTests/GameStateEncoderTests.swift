@@ -15,7 +15,8 @@ final class GameStateEncoderTests: XCTestCase {
             moveHistory: moveHistory,
             currentPlayer: currentPlayer,
             capturedCount: capturedCount,
-            gameState: gameState
+            gameState: gameState,
+            blackPlayerID: nil
         )
         
         // Should have current player, capture counts, and game state
@@ -41,7 +42,8 @@ final class GameStateEncoderTests: XCTestCase {
             moveHistory: moveHistory,
             currentPlayer: currentPlayer,
             capturedCount: capturedCount,
-            gameState: gameState
+            gameState: gameState,
+            blackPlayerID: nil
         )
         
         // Should have moves now
@@ -63,7 +65,8 @@ final class GameStateEncoderTests: XCTestCase {
             moveHistory: moveHistory,
             currentPlayer: currentPlayer,
             capturedCount: capturedCount,
-            gameState: gameState
+            gameState: gameState,
+            blackPlayerID: nil
         )
         
         let movesItem = queryItems.first { $0.name == "moves" }
@@ -81,7 +84,8 @@ final class GameStateEncoderTests: XCTestCase {
             moveHistory: moveHistory,
             currentPlayer: currentPlayer,
             capturedCount: capturedCount,
-            gameState: gameState
+            gameState: gameState,
+            blackPlayerID: nil
         )
         
         XCTAssertTrue(queryItems.contains { $0.name == "capB" && $0.value == "2" })
@@ -98,7 +102,8 @@ final class GameStateEncoderTests: XCTestCase {
             moveHistory: moveHistory,
             currentPlayer: currentPlayer,
             capturedCount: capturedCount,
-            gameState: gameState
+            gameState: gameState,
+            blackPlayerID: nil
         )
         
         XCTAssertTrue(queryItems.contains { $0.name == "state" && $0.value == "won" })
@@ -116,7 +121,8 @@ final class GameStateEncoderTests: XCTestCase {
             moveHistory: moveHistory,
             currentPlayer: currentPlayer,
             capturedCount: capturedCount,
-            gameState: gameState
+            gameState: gameState,
+            blackPlayerID: nil
         )
         
         XCTAssertTrue(queryItems.contains { $0.name == "state" && $0.value == "won" })
@@ -136,13 +142,15 @@ final class GameStateEncoderTests: XCTestCase {
         var gameState: GameState = .won(by: .black, method: .fiveInARow)
         var moveHistory: [(row: Int, col: Int, player: Player)] = [(0, 0, .black)]
         
+        var blackPlayerID: String? = nil
         GameStateDecoder.loadFromURL(
             url,
             board: &board,
             currentPlayer: &currentPlayer,
             capturedCount: &capturedCount,
             gameState: &gameState,
-            moveHistory: &moveHistory
+            moveHistory: &moveHistory,
+            blackPlayerID: &blackPlayerID
         )
         
         // Verify reset and loaded state
@@ -175,13 +183,15 @@ final class GameStateEncoderTests: XCTestCase {
         var gameState: GameState = .playing
         var moveHistory: [(row: Int, col: Int, player: Player)] = []
         
+        var blackPlayerID: String? = nil
         GameStateDecoder.loadFromURL(
             url,
             board: &board,
             currentPlayer: &currentPlayer,
             capturedCount: &capturedCount,
             gameState: &gameState,
-            moveHistory: &moveHistory
+            moveHistory: &moveHistory,
+            blackPlayerID: &blackPlayerID
         )
         
         XCTAssertEqual(currentPlayer, .white)
@@ -203,13 +213,15 @@ final class GameStateEncoderTests: XCTestCase {
         var gameState: GameState = .playing
         var moveHistory: [(row: Int, col: Int, player: Player)] = []
         
+        var blackPlayerID: String? = nil
         GameStateDecoder.loadFromURL(
             url,
             board: &board,
             currentPlayer: &currentPlayer,
             capturedCount: &capturedCount,
             gameState: &gameState,
-            moveHistory: &moveHistory
+            moveHistory: &moveHistory,
+            blackPlayerID: &blackPlayerID
         )
         
         XCTAssertEqual(moveHistory.count, 3)
@@ -241,13 +253,15 @@ final class GameStateEncoderTests: XCTestCase {
         var gameState: GameState = .playing
         var moveHistory: [(row: Int, col: Int, player: Player)] = []
         
+        var blackPlayerID: String? = nil
         GameStateDecoder.loadFromURL(
             url,
             board: &board,
             currentPlayer: &currentPlayer,
             capturedCount: &capturedCount,
             gameState: &gameState,
-            moveHistory: &moveHistory
+            moveHistory: &moveHistory,
+            blackPlayerID: &blackPlayerID
         )
         
         XCTAssertEqual(capturedCount[.black], 3)
@@ -263,13 +277,15 @@ final class GameStateEncoderTests: XCTestCase {
         var gameState: GameState = .playing
         var moveHistory: [(row: Int, col: Int, player: Player)] = []
         
+        var blackPlayerID: String? = nil
         GameStateDecoder.loadFromURL(
             url,
             board: &board,
             currentPlayer: &currentPlayer,
             capturedCount: &capturedCount,
             gameState: &gameState,
-            moveHistory: &moveHistory
+            moveHistory: &moveHistory,
+            blackPlayerID: &blackPlayerID
         )
         
         if case .won(let winner, let method) = gameState {
@@ -289,13 +305,15 @@ final class GameStateEncoderTests: XCTestCase {
         var gameState: GameState = .playing
         var moveHistory: [(row: Int, col: Int, player: Player)] = []
         
+        var blackPlayerID: String? = nil
         GameStateDecoder.loadFromURL(
             url,
             board: &board,
             currentPlayer: &currentPlayer,
             capturedCount: &capturedCount,
             gameState: &gameState,
-            moveHistory: &moveHistory
+            moveHistory: &moveHistory,
+            blackPlayerID: &blackPlayerID
         )
         
         if case .won(let winner, let method) = gameState {
@@ -338,13 +356,15 @@ final class GameStateEncoderTests: XCTestCase {
         var gameState: GameState = .playing
         var moveHistory: [(row: Int, col: Int, player: Player)] = []
         
+        var blackPlayerID: String? = nil
         GameStateDecoder.loadFromURL(
             url,
             board: &board,
             currentPlayer: &currentPlayer,
             capturedCount: &capturedCount,
             gameState: &gameState,
-            moveHistory: &moveHistory
+            moveHistory: &moveHistory,
+            blackPlayerID: &blackPlayerID
         )
         
         // Verify round trip
@@ -387,13 +407,15 @@ final class GameStateEncoderTests: XCTestCase {
         var gameState: GameState = .playing
         var moveHistory: [(row: Int, col: Int, player: Player)] = []
         
+        var blackPlayerID: String? = nil
         GameStateDecoder.loadFromURL(
             url,
             board: &board,
             currentPlayer: &currentPlayer,
             capturedCount: &capturedCount,
             gameState: &gameState,
-            moveHistory: &moveHistory
+            moveHistory: &moveHistory,
+            blackPlayerID: &blackPlayerID
         )
         
         // Verify round trip
@@ -432,13 +454,15 @@ final class GameStateEncoderTests: XCTestCase {
         var gameState: GameState = .playing
         var moveHistory: [(row: Int, col: Int, player: Player)] = []
         
+        var blackPlayerID: String? = nil
         GameStateDecoder.loadFromURL(
             url,
             board: &board,
             currentPlayer: &currentPlayer,
             capturedCount: &capturedCount,
             gameState: &gameState,
-            moveHistory: &moveHistory
+            moveHistory: &moveHistory,
+            blackPlayerID: &blackPlayerID
         )
         
         // Verify the final board state
@@ -464,13 +488,15 @@ final class GameStateEncoderTests: XCTestCase {
         var moveHistory: [(row: Int, col: Int, player: Player)] = []
         
         // Should not crash and should reset to defaults
+        var blackPlayerID: String? = nil
         GameStateDecoder.loadFromURL(
             url,
             board: &board,
             currentPlayer: &currentPlayer,
             capturedCount: &capturedCount,
             gameState: &gameState,
-            moveHistory: &moveHistory
+            moveHistory: &moveHistory,
+            blackPlayerID: &blackPlayerID
         )
         
         // Should be reset to default state
@@ -487,13 +513,15 @@ final class GameStateEncoderTests: XCTestCase {
         var gameState: GameState = .playing
         var moveHistory: [(row: Int, col: Int, player: Player)] = []
         
+        var blackPlayerID: String? = nil
         GameStateDecoder.loadFromURL(
             url,
             board: &board,
             currentPlayer: &currentPlayer,
             capturedCount: &capturedCount,
             gameState: &gameState,
-            moveHistory: &moveHistory
+            moveHistory: &moveHistory,
+            blackPlayerID: &blackPlayerID
         )
         
         // Should only process valid moves
@@ -510,17 +538,198 @@ final class GameStateEncoderTests: XCTestCase {
         var gameState: GameState = .playing
         var moveHistory: [(row: Int, col: Int, player: Player)] = []
         
+        var blackPlayerID: String? = nil
         GameStateDecoder.loadFromURL(
             url,
             board: &board,
             currentPlayer: &currentPlayer,
             capturedCount: &capturedCount,
             gameState: &gameState,
-            moveHistory: &moveHistory
+            moveHistory: &moveHistory,
+            blackPlayerID: &blackPlayerID
         )
         
         // Should only process the valid move
         XCTAssertEqual(moveHistory.count, 1) // Only the valid "B9,9" move
         XCTAssertEqual(board[9, 9], .black)
+    }
+    
+    // MARK: - Player Assignment Tests
+    
+    func testEncodeWithBlackPlayerID() {
+        let moveHistory = [(row: 9, col: 9, player: Player.black)]
+        let currentPlayer: Player = .white
+        let capturedCount: [Player: Int] = [.black: 0, .white: 0]
+        let gameState: GameState = .playing
+        let testPlayerID = "test-player-12345"
+        
+        let queryItems = GameStateEncoder.encodeToQueryItems(
+            moveHistory: moveHistory,
+            currentPlayer: currentPlayer,
+            capturedCount: capturedCount,
+            gameState: gameState,
+            blackPlayerID: testPlayerID
+        )
+        
+        // Should include blackID parameter
+        XCTAssertTrue(queryItems.contains { $0.name == "blackID" && $0.value == testPlayerID })
+    }
+    
+    func testEncodeWithoutBlackPlayerID() {
+        let moveHistory = [(row: 9, col: 9, player: Player.black)]
+        let currentPlayer: Player = .white
+        let capturedCount: [Player: Int] = [.black: 0, .white: 0]
+        let gameState: GameState = .playing
+        
+        let queryItems = GameStateEncoder.encodeToQueryItems(
+            moveHistory: moveHistory,
+            currentPlayer: currentPlayer,
+            capturedCount: capturedCount,
+            gameState: gameState,
+            blackPlayerID: nil
+        )
+        
+        // Should not include blackID parameter
+        XCTAssertFalse(queryItems.contains { $0.name == "blackID" })
+    }
+    
+    func testDecodeWithBlackPlayerID() {
+        let testPlayerID = "test-player-54321"
+        let url = URL(string: "pente://game?moves=B9,9;&current=White&capB=0&capW=0&state=playing&blackID=\(testPlayerID)")!
+        
+        var board = GameBoard()
+        var currentPlayer: Player = .black
+        var capturedCount: [Player: Int] = [.black: 0, .white: 0]
+        var gameState: GameState = .playing
+        var moveHistory: [(row: Int, col: Int, player: Player)] = []
+        var blackPlayerID: String? = nil
+        
+        GameStateDecoder.loadFromURL(
+            url,
+            board: &board,
+            currentPlayer: &currentPlayer,
+            capturedCount: &capturedCount,
+            gameState: &gameState,
+            moveHistory: &moveHistory,
+            blackPlayerID: &blackPlayerID
+        )
+        
+        XCTAssertEqual(blackPlayerID, testPlayerID)
+        XCTAssertEqual(currentPlayer, .white)
+        XCTAssertEqual(moveHistory.count, 1)
+    }
+    
+    func testDecodeWithoutBlackPlayerID() {
+        let url = URL(string: "pente://game?moves=B9,9;&current=White&capB=0&capW=0&state=playing")!
+        
+        var board = GameBoard()
+        var currentPlayer: Player = .black
+        var capturedCount: [Player: Int] = [.black: 0, .white: 0]
+        var gameState: GameState = .playing
+        var moveHistory: [(row: Int, col: Int, player: Player)] = []
+        var blackPlayerID: String? = "should-be-reset"
+        
+        GameStateDecoder.loadFromURL(
+            url,
+            board: &board,
+            currentPlayer: &currentPlayer,
+            capturedCount: &capturedCount,
+            gameState: &gameState,
+            moveHistory: &moveHistory,
+            blackPlayerID: &blackPlayerID
+        )
+        
+        XCTAssertNil(blackPlayerID) // Should be reset to nil
+    }
+    
+    func testRoundTripWithBlackPlayerID() {
+        let originalMoveHistory = [(row: 9, col: 9, player: Player.black)]
+        let originalCurrentPlayer: Player = .white
+        let originalCapturedCount: [Player: Int] = [.black: 0, .white: 0]
+        let originalGameState: GameState = .playing
+        let originalBlackPlayerID = "round-trip-test-player"
+        
+        // Encode
+        let queryItems = GameStateEncoder.encodeToQueryItems(
+            moveHistory: originalMoveHistory,
+            currentPlayer: originalCurrentPlayer,
+            capturedCount: originalCapturedCount,
+            gameState: originalGameState,
+            blackPlayerID: originalBlackPlayerID
+        )
+        
+        // Create URL
+        var components = URLComponents()
+        components.scheme = "pente"
+        components.host = "game"
+        components.queryItems = queryItems
+        let url = components.url!
+        
+        // Decode
+        var board = GameBoard()
+        var currentPlayer: Player = .black
+        var capturedCount: [Player: Int] = [.black: 0, .white: 0]
+        var gameState: GameState = .playing
+        var moveHistory: [(row: Int, col: Int, player: Player)] = []
+        var blackPlayerID: String? = nil
+        
+        GameStateDecoder.loadFromURL(
+            url,
+            board: &board,
+            currentPlayer: &currentPlayer,
+            capturedCount: &capturedCount,
+            gameState: &gameState,
+            moveHistory: &moveHistory,
+            blackPlayerID: &blackPlayerID
+        )
+        
+        // Verify round trip
+        XCTAssertEqual(blackPlayerID, originalBlackPlayerID)
+        XCTAssertEqual(currentPlayer, originalCurrentPlayer)
+        XCTAssertEqual(moveHistory.count, originalMoveHistory.count)
+    }
+    
+    func testPlayerIDURLEncoding() {
+        // Test with UUID-like string that might need URL encoding
+        let testPlayerID = "550e8400-e29b-41d4-a716-446655440000"
+        let moveHistory: [(row: Int, col: Int, player: Player)] = []
+        let currentPlayer: Player = .black
+        let capturedCount: [Player: Int] = [.black: 0, .white: 0]
+        let gameState: GameState = .playing
+        
+        let queryItems = GameStateEncoder.encodeToQueryItems(
+            moveHistory: moveHistory,
+            currentPlayer: currentPlayer,
+            capturedCount: capturedCount,
+            gameState: gameState,
+            blackPlayerID: testPlayerID
+        )
+        
+        // Create URL and verify it can be properly created and decoded
+        var components = URLComponents()
+        components.scheme = "pente"
+        components.host = "game"
+        components.queryItems = queryItems
+        let url = components.url!
+        
+        // Decode back
+        var board = GameBoard()
+        var decodedCurrentPlayer: Player = .white
+        var decodedCapturedCount: [Player: Int] = [.black: 0, .white: 0]
+        var decodedGameState: GameState = .playing
+        var decodedMoveHistory: [(row: Int, col: Int, player: Player)] = []
+        var decodedBlackPlayerID: String? = nil
+        
+        GameStateDecoder.loadFromURL(
+            url,
+            board: &board,
+            currentPlayer: &decodedCurrentPlayer,
+            capturedCount: &decodedCapturedCount,
+            gameState: &decodedGameState,
+            moveHistory: &decodedMoveHistory,
+            blackPlayerID: &decodedBlackPlayerID
+        )
+        
+        XCTAssertEqual(decodedBlackPlayerID, testPlayerID)
     }
 }

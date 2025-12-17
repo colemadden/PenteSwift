@@ -46,9 +46,29 @@ class MessagesViewController: MSMessagesAppViewController {
         if let message = conversation.selectedMessage,
            let url = message.url {
             gameModel.loadFromURL(url)
+            
+            // Determine this player's role based on who started the game
+            let localParticipantID = conversation.localParticipantIdentifier.uuidString
+            
+            if let blackPlayerID = gameModel.blackPlayerID {
+                // Game already has a black player assigned
+                if blackPlayerID == localParticipantID {
+                    // This device is the black player
+                    gameModel.setPlayerAssignment(.black, blackPlayerID: blackPlayerID)
+                } else {
+                    // This device is the white player
+                    gameModel.setPlayerAssignment(.white, blackPlayerID: blackPlayerID)
+                }
+            } else {
+                // No black player assigned yet (shouldn't happen with proper encoding)
+                print("Warning: No black player ID found in game state")
+                gameModel.setPlayerAssignment(nil, blackPlayerID: nil)
+            }
         } else {
-            // No existing game, start a new one
-            gameModel.startNewGame()
+            // No existing game, start a new one - this player becomes black
+            let localParticipantID = conversation.localParticipantIdentifier.uuidString
+            gameModel.startNewGame(blackPlayerID: localParticipantID)
+            gameModel.setPlayerAssignment(.black, blackPlayerID: localParticipantID)
         }
     }
     
@@ -62,6 +82,24 @@ class MessagesViewController: MSMessagesAppViewController {
         // Update game state from received message
         if let url = message.url {
             gameModel.loadFromURL(url)
+            
+            // Determine this player's role based on who started the game
+            let localParticipantID = conversation.localParticipantIdentifier.uuidString
+            
+            if let blackPlayerID = gameModel.blackPlayerID {
+                // Game has a black player assigned
+                if blackPlayerID == localParticipantID {
+                    // This device is the black player
+                    gameModel.setPlayerAssignment(.black, blackPlayerID: blackPlayerID)
+                } else {
+                    // This device is the white player
+                    gameModel.setPlayerAssignment(.white, blackPlayerID: blackPlayerID)
+                }
+            } else {
+                // No black player assigned yet (shouldn't happen)
+                print("Warning: No black player ID found in received message")
+                gameModel.setPlayerAssignment(nil, blackPlayerID: nil)
+            }
         }
     }
     
@@ -83,6 +121,25 @@ class MessagesViewController: MSMessagesAppViewController {
     
     // MARK: - Message Creation
     
+    private func createDynamicBoardImage(size: CGSize) -> UIImage? {
+        // Generate both light and dark versions of the board image
+        guard let lightImage = gameModel.generateBoardImage(size: size, colorScheme: .light),
+              let darkImage = gameModel.generateBoardImage(size: size, colorScheme: .dark) else {
+            return nil
+        }
+        
+        // Create a dynamic image asset that adapts to viewer's theme
+        let imageAsset = UIImageAsset()
+        let lightTraits = UITraitCollection(userInterfaceStyle: .light)
+        let darkTraits = UITraitCollection(userInterfaceStyle: .dark)
+        
+        imageAsset.register(lightImage, with: lightTraits)
+        imageAsset.register(darkImage, with: darkTraits)
+        
+        // Return the dynamic image that will adapt to the viewer's current theme
+        return imageAsset.image(with: .current)
+    }
+    
     private func createMessage() -> MSMessage {
         let message = MSMessage()
         
@@ -94,14 +151,9 @@ class MessagesViewController: MSMessagesAppViewController {
         // Create the message layout
         let layout = MSMessageTemplateLayout()
         
-        // Generate and set the board preview image with current color scheme
-        // Reduced from 300x300 to 180x180 (60% of original size)
-        let currentColorScheme = traitCollection.userInterfaceStyle
-        if let boardImage = gameModel.generateBoardImage(
-            size: CGSize(width: 300, height: 300),
-            colorScheme: currentColorScheme
-        ) {
-            layout.image = boardImage
+        // Generate dynamic board preview image that adapts to viewer's theme
+        if let dynamicBoardImage = createDynamicBoardImage(size: CGSize(width: 300, height: 300)) {
+            layout.image = dynamicBoardImage
         }
         
         layout.caption = "Pente"

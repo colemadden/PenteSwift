@@ -97,15 +97,34 @@ struct PenteGameView: View {
                                 .cornerRadius(8)
                         }
                     } else {
-                        // Show whose turn it is
-                        HStack(spacing: 10) {
-                            Circle()
-                                .fill(gameModel.currentPlayer == .black ? blackStoneColor : whiteStoneColor)
-                                .frame(width: 20, height: 20)
-                                .overlay(Circle().stroke(Color.gray, lineWidth: 1))
-                            
-                            Text(gameModel.currentPlayer.rawValue + " plays")
-                                .font(.system(size: 16))
+                        // Show whose turn it is or waiting message
+                        if gameModel.waitingForOpponent {
+                            VStack(spacing: 5) {
+                                Text("Waiting for opponent")
+                                    .font(.system(size: 16))
+                                    .foregroundColor(.secondary)
+                                
+                                HStack(spacing: 10) {
+                                    Circle()
+                                        .fill(gameModel.currentPlayer == .black ? blackStoneColor : whiteStoneColor)
+                                        .frame(width: 20, height: 20)
+                                        .overlay(Circle().stroke(Color.gray, lineWidth: 1))
+                                    
+                                    Text(gameModel.currentPlayer.rawValue + "'s turn")
+                                        .font(.system(size: 14))
+                                        .foregroundColor(.secondary)
+                                }
+                            }
+                        } else {
+                            HStack(spacing: 10) {
+                                Circle()
+                                    .fill(gameModel.currentPlayer == .black ? blackStoneColor : whiteStoneColor)
+                                    .frame(width: 20, height: 20)
+                                    .overlay(Circle().stroke(Color.gray, lineWidth: 1))
+                                
+                                Text("Your turn")
+                                    .font(.system(size: 16))
+                            }
                         }
                     }
                 case .won(let winner, let method):
@@ -117,6 +136,9 @@ struct PenteGameView: View {
                             .font(.caption)
                         
                         Button("New Game") {
+                            // Note: In a real scenario, we'd need access to the conversation
+                            // For now, we'll reset without setting a specific black player ID
+                            // The MessagesViewController will handle player assignment
                             gameModel.startNewGame()
                         }
                         .padding(.top, 5)

@@ -5,7 +5,8 @@ struct GameStateEncoder {
         moveHistory: [(row: Int, col: Int, player: Player)],
         currentPlayer: Player,
         capturedCount: [Player: Int],
-        gameState: GameState
+        gameState: GameState,
+        blackPlayerID: String?
     ) -> [URLQueryItem] {
         var items: [URLQueryItem] = []
         
@@ -36,6 +37,11 @@ struct GameStateEncoder {
             items.append(URLQueryItem(name: "method", value: method.rawValue))
         }
         
+        // Black player identifier
+        if let blackPlayerID = blackPlayerID {
+            items.append(URLQueryItem(name: "blackID", value: blackPlayerID))
+        }
+        
         return items
     }
 }
@@ -47,7 +53,8 @@ struct GameStateDecoder {
         currentPlayer: inout Player,
         capturedCount: inout [Player: Int],
         gameState: inout GameState,
-        moveHistory: inout [(row: Int, col: Int, player: Player)]
+        moveHistory: inout [(row: Int, col: Int, player: Player)],
+        blackPlayerID: inout String?
     ) {
         guard let components = URLComponents(url: url, resolvingAgainstBaseURL: false),
               let queryItems = components.queryItems else { return }
@@ -58,6 +65,7 @@ struct GameStateDecoder {
         capturedCount = [.black: 0, .white: 0]
         gameState = .playing
         moveHistory = []
+        blackPlayerID = nil
         
         // Parse moves and replay them
         if let movesString = queryItems.first(where: { $0.name == "moves" })?.value {
@@ -118,6 +126,11 @@ struct GameStateDecoder {
                 let method: WinMethod = methodString == "fiveInARow" ? .fiveInARow : .fiveCaptures
                 gameState = .won(by: winner, method: method)
             }
+        }
+        
+        // Set black player identifier
+        if let blackIDString = queryItems.first(where: { $0.name == "blackID" })?.value {
+            blackPlayerID = blackIDString
         }
     }
 }

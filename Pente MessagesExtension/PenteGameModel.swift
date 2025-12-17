@@ -10,6 +10,11 @@ class PenteGameModel: ObservableObject {
     @Published var pendingMove: (row: Int, col: Int)? = nil
     @Published var pendingCaptures: [(row: Int, col: Int)] = []
     @Published var isNewGamePendingSend: Bool = false
+    @Published var canMakeMove: Bool = true
+    @Published var waitingForOpponent: Bool = false
+    
+    var blackPlayerID: String? = nil
+    var assignedPlayerColor: Player? = nil
     
     weak var moveDelegate: GameMoveDelegate?
     
@@ -19,6 +24,23 @@ class PenteGameModel: ObservableObject {
     
     var isFirstMoveReadyToSend: Bool {
         return isNewGamePendingSend
+    }
+    
+    func setPlayerAssignment(_ playerColor: Player?, blackPlayerID: String?) {
+        self.assignedPlayerColor = playerColor
+        self.blackPlayerID = blackPlayerID
+        updateMovePermissions()
+    }
+    
+    private func updateMovePermissions() {
+        guard let assignedColor = assignedPlayerColor else {
+            canMakeMove = true
+            waitingForOpponent = false
+            return
+        }
+        
+        canMakeMove = (currentPlayer == assignedColor)
+        waitingForOpponent = !canMakeMove
     }
     
     func sendFirstMove() {
@@ -33,6 +55,9 @@ class PenteGameModel: ObservableObject {
         
         // Prevent moves during first move ready-to-send state
         guard !isFirstMoveReadyToSend else { return }
+        
+        // Check if this player can make moves
+        guard canMakeMove else { return }
         
         // If there's already a pending move...
         if let pending = pendingMove {
@@ -82,6 +107,9 @@ class PenteGameModel: ObservableObject {
             currentPlayer = currentPlayer.opponent
         }
         
+        // Update move permissions after turn change
+        updateMovePermissions()
+        
         // Clear pending state
         pendingMove = nil
         pendingCaptures = []
@@ -110,7 +138,8 @@ class PenteGameModel: ObservableObject {
             moveHistory: moveHistory,
             currentPlayer: currentPlayer,
             capturedCount: capturedCount,
-            gameState: gameState
+            gameState: gameState,
+            blackPlayerID: blackPlayerID
         )
     }
     
@@ -121,7 +150,8 @@ class PenteGameModel: ObservableObject {
             currentPlayer: &currentPlayer,
             capturedCount: &capturedCount,
             gameState: &gameState,
-            moveHistory: &moveHistory
+            moveHistory: &moveHistory,
+            blackPlayerID: &blackPlayerID
         )
     }
     
@@ -135,10 +165,15 @@ class PenteGameModel: ObservableObject {
         pendingMove = nil
         pendingCaptures = []
         isNewGamePendingSend = false
+        blackPlayerID = nil
+        assignedPlayerColor = nil
+        canMakeMove = true
+        waitingForOpponent = false
     }
     
-    func startNewGame() {
+    func startNewGame(blackPlayerID: String? = nil) {
         resetGame()
+        self.blackPlayerID = blackPlayerID
         // Place the first black stone in the center as a completed move
         gameBoard.placeStone(.black, at: 9, col: 9)
         moveHistory.append((row: 9, col: 9, player: .black))

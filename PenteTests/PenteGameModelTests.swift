@@ -560,4 +560,210 @@ final class PenteGameModelTests: XCTestCase {
         XCTAssertEqual(gameModel.moveHistory.count, 5)
         XCTAssertNil(gameModel.pendingMove)
     }
+    
+    // MARK: - Player Assignment Tests
+    
+    func testInitialPlayerAssignmentState() {
+        // Initial state should allow moves (no assignment restrictions)
+        XCTAssertNil(gameModel.assignedPlayerColor)
+        XCTAssertNil(gameModel.blackPlayerID)
+        XCTAssertTrue(gameModel.canMakeMove)
+        XCTAssertFalse(gameModel.waitingForOpponent)
+    }
+    
+    func testSetBlackPlayerAssignment() {
+        let testPlayerID = "black-player-123"
+        
+        gameModel.setPlayerAssignment(.black, blackPlayerID: testPlayerID)
+        
+        XCTAssertEqual(gameModel.assignedPlayerColor, .black)
+        XCTAssertEqual(gameModel.blackPlayerID, testPlayerID)
+        XCTAssertTrue(gameModel.canMakeMove) // Black's turn initially
+        XCTAssertFalse(gameModel.waitingForOpponent)
+    }
+    
+    func testSetWhitePlayerAssignment() {
+        let testPlayerID = "black-player-123"
+        
+        gameModel.setPlayerAssignment(.white, blackPlayerID: testPlayerID)
+        
+        XCTAssertEqual(gameModel.assignedPlayerColor, .white)
+        XCTAssertEqual(gameModel.blackPlayerID, testPlayerID)
+        XCTAssertFalse(gameModel.canMakeMove) // Black's turn, but this is white player
+        XCTAssertTrue(gameModel.waitingForOpponent)
+    }
+    
+    func testBlackPlayerCanMoveOnTheirTurn() {
+        let testPlayerID = "black-player-123"
+        gameModel.setPlayerAssignment(.black, blackPlayerID: testPlayerID)
+        
+        // Should be black's turn initially
+        XCTAssertEqual(gameModel.currentPlayer, .black)
+        XCTAssertTrue(gameModel.canMakeMove)
+        
+        // Should be able to make a move
+        gameModel.makeMove(row: 9, col: 9)
+        XCTAssertNotNil(gameModel.pendingMove)
+    }
+    
+    func testWhitePlayerCannotMoveOnBlacksTurn() {
+        let testPlayerID = "black-player-123"
+        gameModel.setPlayerAssignment(.white, blackPlayerID: testPlayerID)
+        
+        // Should be black's turn initially, white player should not be able to move
+        XCTAssertEqual(gameModel.currentPlayer, .black)
+        XCTAssertFalse(gameModel.canMakeMove)
+        
+        // Should not be able to make a move
+        gameModel.makeMove(row: 9, col: 9)
+        XCTAssertNil(gameModel.pendingMove)
+    }
+    
+    func testTurnChangeUpdatesPermissions() {
+        let testPlayerID = "black-player-123"
+        gameModel.setPlayerAssignment(.white, blackPlayerID: testPlayerID)
+        
+        // Initially white player cannot move (black's turn)
+        XCTAssertFalse(gameModel.canMakeMove)
+        XCTAssertTrue(gameModel.waitingForOpponent)
+        
+        // Simulate black making a move (manually change turn and reassign to trigger update)
+        gameModel.currentPlayer = .white
+        gameModel.setPlayerAssignment(.white, blackPlayerID: testPlayerID)
+        
+        // Now white player should be able to move
+        XCTAssertTrue(gameModel.canMakeMove)
+        XCTAssertFalse(gameModel.waitingForOpponent)
+    }
+    
+    func testPlayerAssignmentWithRealGameFlow() {
+        let testPlayerID = "black-player-123"
+        
+        // Start as black player
+        gameModel.setPlayerAssignment(.black, blackPlayerID: testPlayerID)
+        
+        // Black player makes first move
+        XCTAssertTrue(gameModel.canMakeMove)
+        gameModel.makeMove(row: 9, col: 9)
+        gameModel.confirmMove()
+        
+        // Now it should be white's turn, black player should wait
+        XCTAssertEqual(gameModel.currentPlayer, .white)
+        XCTAssertFalse(gameModel.canMakeMove)
+        XCTAssertTrue(gameModel.waitingForOpponent)
+        
+        // Black player should not be able to make another move
+        gameModel.makeMove(row: 10, col: 10)
+        XCTAssertNil(gameModel.pendingMove)
+    }
+    
+    func testResetGameClearsPlayerAssignment() {
+        let testPlayerID = "black-player-123"
+        gameModel.setPlayerAssignment(.black, blackPlayerID: testPlayerID)
+        
+        XCTAssertNotNil(gameModel.assignedPlayerColor)
+        XCTAssertNotNil(gameModel.blackPlayerID)
+        
+        gameModel.resetGame()
+        
+        XCTAssertNil(gameModel.assignedPlayerColor)
+        XCTAssertNil(gameModel.blackPlayerID)
+        XCTAssertTrue(gameModel.canMakeMove)
+        XCTAssertFalse(gameModel.waitingForOpponent)
+    }
+    
+    func testStartNewGameWithPlayerID() {
+        let testPlayerID = "new-game-player-123"
+        
+        gameModel.startNewGame(blackPlayerID: testPlayerID)
+        
+        XCTAssertEqual(gameModel.blackPlayerID, testPlayerID)
+        XCTAssertEqual(gameModel.currentPlayer, .white) // First move places black stone, switches to white
+        XCTAssertTrue(gameModel.isNewGamePendingSend)
+        
+        // Check that the center black stone was placed
+        XCTAssertEqual(gameModel.moveHistory.count, 1)
+        XCTAssertEqual(gameModel.moveHistory[0].player, .black)
+        XCTAssertEqual(gameModel.moveHistory[0].row, 9)
+        XCTAssertEqual(gameModel.moveHistory[0].col, 9)
+    }
+    
+    func testPlayerAssignmentWithNilAssignment() {
+        // Test that nil assignment allows all moves (legacy behavior)
+        gameModel.setPlayerAssignment(nil, blackPlayerID: nil)
+        
+        XCTAssertNil(gameModel.assignedPlayerColor)
+        XCTAssertTrue(gameModel.canMakeMove)
+        XCTAssertFalse(gameModel.waitingForOpponent)
+        
+        // Should be able to make moves regardless of turn
+        gameModel.makeMove(row: 9, col: 9)
+        XCTAssertNotNil(gameModel.pendingMove)
+    }
+    
+    func testEncodeToQueryItemsIncludesPlayerID() {
+        let testPlayerID = "encode-test-player"
+        gameModel.blackPlayerID = testPlayerID
+        
+        let queryItems = gameModel.encodeToQueryItems()
+        
+        XCTAssertTrue(queryItems.contains { $0.name == "blackID" && $0.value == testPlayerID })
+    }
+    
+    func testLoadFromURLSetsBlackPlayerID() {
+        let testPlayerID = "load-test-player"
+        let url = URL(string: "pente://game?current=Black&capB=0&capW=0&state=playing&blackID=\(testPlayerID)")!
+        
+        gameModel.loadFromURL(url)
+        
+        XCTAssertEqual(gameModel.blackPlayerID, testPlayerID)
+    }
+    
+    func testUpdateMovePermissionsDirectly() {
+        // Test the private updateMovePermissions method indirectly
+        let testPlayerID = "permissions-test-player"
+        
+        // Test with no assignment
+        gameModel.setPlayerAssignment(nil, blackPlayerID: nil)
+        XCTAssertTrue(gameModel.canMakeMove)
+        XCTAssertFalse(gameModel.waitingForOpponent)
+        
+        // Test with black assignment on black's turn
+        gameModel.currentPlayer = .black
+        gameModel.setPlayerAssignment(.black, blackPlayerID: testPlayerID)
+        XCTAssertTrue(gameModel.canMakeMove)
+        XCTAssertFalse(gameModel.waitingForOpponent)
+        
+        // Test with white assignment on black's turn
+        gameModel.currentPlayer = .black
+        gameModel.setPlayerAssignment(.white, blackPlayerID: testPlayerID)
+        XCTAssertFalse(gameModel.canMakeMove)
+        XCTAssertTrue(gameModel.waitingForOpponent)
+        
+        // Test with white assignment on white's turn
+        gameModel.currentPlayer = .white
+        gameModel.setPlayerAssignment(.white, blackPlayerID: testPlayerID)
+        XCTAssertTrue(gameModel.canMakeMove)
+        XCTAssertFalse(gameModel.waitingForOpponent)
+    }
+    
+    func testPlayerAssignmentPreventsGameEndingMoves() {
+        let testPlayerID = "endgame-test-player"
+        gameModel.setPlayerAssignment(.white, blackPlayerID: testPlayerID)
+        
+        // Set up a scenario where black could win, but white player shouldn't be able to trigger it
+        gameModel.currentPlayer = .black
+        
+        // White player (waiting for opponent) tries to make a move
+        XCTAssertFalse(gameModel.canMakeMove)
+        gameModel.makeMove(row: 9, col: 9)
+        
+        // Should not create pending move or change game state
+        XCTAssertNil(gameModel.pendingMove)
+        if case .playing = gameModel.gameState {
+            // Correct - game should still be playing
+        } else {
+            XCTFail("Game state should still be playing")
+        }
+    }
 }

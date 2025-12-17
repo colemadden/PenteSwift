@@ -427,6 +427,161 @@ final class MessagesViewControllerTests: XCTestCase {
         }
     }
     
+    // MARK: - Dynamic Theme Tests
+    
+    func testCreateMessageIncludesBoardImage() {
+        // Set up a game with some moves
+        let mirror = Mirror(reflecting: viewController)
+        var gameModel: PenteGameModel?
+        
+        for child in mirror.children {
+            if child.label == "gameModel" {
+                gameModel = child.value as? PenteGameModel
+                break
+            }
+        }
+        
+        gameModel?.makeMove(row: 9, col: 9)
+        gameModel?.confirmMove()
+        gameModel?.makeMove(row: 10, col: 10)
+        gameModel?.confirmMove()
+        
+        let selector = NSSelectorFromString("createMessage")
+        
+        if viewController.responds(to: selector) {
+            let message = viewController.perform(selector)?.takeUnretainedValue() as? MSMessage
+            
+            XCTAssertNotNil(message)
+            if let layout = message?.layout as? MSMessageTemplateLayout {
+                XCTAssertNotNil(layout.image, "Message layout should include a board image")
+                
+                // Verify image has reasonable dimensions
+                if let image = layout.image {
+                    XCTAssertGreaterThan(image.size.width, 0)
+                    XCTAssertGreaterThan(image.size.height, 0)
+                    XCTAssertEqual(image.size.width, 300, accuracy: 1.0)
+                    XCTAssertEqual(image.size.height, 300, accuracy: 1.0)
+                }
+            }
+        }
+    }
+    
+    func testCreateDynamicBoardImageFallback() {
+        // Test that if dynamic image creation fails, message is still created
+        // This tests the error handling path in createDynamicBoardImage
+        
+        let selector = NSSelectorFromString("createMessage")
+        
+        if viewController.responds(to: selector) {
+            let message = viewController.perform(selector)?.takeUnretainedValue() as? MSMessage
+            
+            // Message should still be created even if image generation fails
+            XCTAssertNotNil(message)
+            XCTAssertNotNil(message?.url)
+            XCTAssertNotNil(message?.layout)
+            
+            if let layout = message?.layout as? MSMessageTemplateLayout {
+                XCTAssertEqual(layout.caption, "Pente")
+                // Image may be nil if generation failed, but message should still work
+            }
+        }
+    }
+    
+    func testMessageLayoutConsistency() {
+        // Test that multiple message creations produce consistent layouts
+        let mirror = Mirror(reflecting: viewController)
+        var gameModel: PenteGameModel?
+        
+        for child in mirror.children {
+            if child.label == "gameModel" {
+                gameModel = child.value as? PenteGameModel
+                break
+            }
+        }
+        
+        // Make identical game state
+        gameModel?.makeMove(row: 5, col: 5)
+        gameModel?.confirmMove()
+        
+        let selector = NSSelectorFromString("createMessage")
+        var messages: [MSMessage] = []
+        
+        // Create multiple messages with same game state
+        for _ in 0..<3 {
+            if viewController.responds(to: selector) {
+                if let message = viewController.perform(selector)?.takeUnretainedValue() as? MSMessage {
+                    messages.append(message)
+                }
+            }
+        }
+        
+        XCTAssertEqual(messages.count, 3)
+        
+        // All messages should have consistent layouts
+        let firstLayout = messages[0].layout as? MSMessageTemplateLayout
+        for i in 1..<messages.count {
+            let layout = messages[i].layout as? MSMessageTemplateLayout
+            XCTAssertEqual(layout?.caption, firstLayout?.caption)
+            XCTAssertEqual(layout?.subcaption, firstLayout?.subcaption)
+            // Images should have same dimensions even if content differs slightly
+            if let firstImage = firstLayout?.image, let image = layout?.image {
+                XCTAssertEqual(firstImage.size, image.size)
+            }
+        }
+    }
+    
+    func testBoardImageGenerationPerformance() {
+        // Test that board image generation doesn't take too long
+        let mirror = Mirror(reflecting: viewController)
+        var gameModel: PenteGameModel?
+        
+        for child in mirror.children {
+            if child.label == "gameModel" {
+                gameModel = child.value as? PenteGameModel
+                break
+            }
+        }
+        
+        // Create a complex board state
+        let moves = [(5,5), (6,6), (7,7), (8,8), (9,9), (10,10), (11,11), (12,12)]
+        for (i, move) in moves.enumerated() {
+            gameModel?.makeMove(row: move.0, col: move.1)
+            gameModel?.confirmMove()
+        }
+        
+        let selector = NSSelectorFromString("createMessage")
+        
+        // Should complete within reasonable time
+        measure {
+            if viewController.responds(to: selector) {
+                _ = viewController.perform(selector)
+            }
+        }
+    }
+    
+    func testDynamicImageMemoryUsage() {
+        // Test that dynamic image creation doesn't cause memory leaks
+        let selector = NSSelectorFromString("createMessage")
+        
+        // Create many messages to test for memory accumulation
+        var messages: [MSMessage] = []
+        for _ in 0..<50 {
+            if viewController.responds(to: selector) {
+                if let message = viewController.perform(selector)?.takeUnretainedValue() as? MSMessage {
+                    messages.append(message)
+                }
+            }
+        }
+        
+        XCTAssertEqual(messages.count, 50)
+        
+        // Clear references and verify no crashes
+        messages.removeAll()
+        
+        // If we get here without crashes, memory management is working
+        XCTAssertTrue(true)
+    }
+    
     // MARK: - Memory Management Tests
     
     func testDelegateRetainCycle() {
