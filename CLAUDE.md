@@ -110,6 +110,36 @@ The extension uses **iMessage App Icon.appiconset** (NOT sticker format):
 - **Physical Device**: Required for final iMessage extension validation
 - **Test Execution**: Use Xcode Test Navigator (⌘+6) for iMessage extension tests
 
+### **MANDATORY TESTING REQUIREMENTS**
+
+**ALL NEW FEATURES AND BUG FIXES MUST INCLUDE UNIT TESTS:**
+
+1. **New Game Logic**: Write tests covering all code paths, edge cases, and error conditions
+2. **UI Components**: Test user interactions, state changes, and view updates
+3. **Data Encoding/Decoding**: Test URL parameter serialization, edge cases, and malformed data
+4. **Player Assignment Logic**: Test participant identification, role assignments, and permission checks
+5. **Image Generation**: Test dynamic theme support, performance, and memory management
+6. **Message Handling**: Test iMessage integration, conversation flow, and error recovery
+
+**Test Requirements:**
+- ✅ **100% Code Coverage**: All new code must have corresponding tests
+- ✅ **Edge Case Testing**: Handle invalid inputs, boundary conditions, and error states
+- ✅ **Performance Testing**: Use `measure {}` blocks for computationally intensive operations
+- ✅ **Memory Management**: Test for retain cycles and proper cleanup
+- ✅ **Integration Testing**: Verify components work together correctly
+
+**Test Naming Convention:**
+- `testFeatureName()` - Basic functionality
+- `testFeatureNameWithEdgeCase()` - Boundary conditions
+- `testFeatureNamePerformance()` - Performance requirements
+- `testFeatureNameErrorHandling()` - Error conditions
+
+**Before committing any feature:**
+1. Write comprehensive unit tests
+2. Run all tests via Xcode Test Navigator (⌘+6)
+3. Verify 100% test pass rate
+4. Check code coverage reports
+
 ### GitHub Integration
 
 Repository: https://github.com/colemadden/PenteSwift.git
