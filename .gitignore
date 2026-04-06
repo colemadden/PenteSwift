@@ -2,6 +2,7 @@
 AuthKey_*.p8
 *.cer
 distribution.cer
+.claude/
 
 # Build artifacts
 build/

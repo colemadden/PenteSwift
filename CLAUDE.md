@@ -166,20 +166,4 @@ Repository: https://github.com/colemadden/PenteSwift.git
 
 ### App Store Connect API Access
 
-Programmatic access to App Store Connect is available via the REST API:
-- **API Key ID**: `423RCYC29Y`
-- **Issuer ID**: `a6c794e7-34a7-412d-8694-a630ed90701c`
-- **Key File**: `AuthKey_423RCYC29Y.p8` (in project root, DO NOT commit)
-- **App ID**: `6748970073`
-- **Bundle ID**: `colemadden.Pente`
-- **SKU**: `PenteForIMessage`
-- **Team ID**: `SB4A7WG2KH`
-
-**How to use**: Generate a JWT (ES256, 20min expiry, audience `appstoreconnect-v1`) and call `https://api.appstoreconnect.apple.com/v1/...` endpoints. Python example with `jwt` library works. `xcrun altool` also accepts `--apiKey` and `--apiIssuer` flags.
-
-**Useful endpoints**:
-- List apps: `GET /v1/apps`
-- List builds: `GET /v1/builds?filter[app]={appId}&sort=-uploadedDate`
-- Beta groups: `GET /v1/apps/{appId}/betaGroups`
-- Beta testers: `GET /v1/betaTesters?filter[apps]={appId}`
-- Upload builds: `xcrun altool --upload-app --type ios --file <ipa> --apiKey <key> --apiIssuer <issuer>`
+Credentials and API details are stored in `.claude/CLAUDE.md` (local, not committed to git). New sessions: check that file for API Key ID, Issuer ID, App ID, and usage instructions.
