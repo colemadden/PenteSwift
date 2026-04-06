@@ -1,4 +1,5 @@
 import SwiftUI
+import PenteCore
 
 struct PenteGameView: View {
     @ObservedObject var gameModel: PenteGameModel
@@ -85,7 +86,7 @@ struct PenteGameView: View {
                                     .cornerRadius(8)
                             }
                         }
-                    } else if gameModel.isFirstMoveReadyToSend {
+                    } else if gameModel.isNewGamePendingSend {
                         // Show Send button for first move
                         Button(action: {
                             gameModel.sendFirstMove()
@@ -171,127 +172,134 @@ struct PenteBoardView: View {
                 
                 // Game board canvas
                 Canvas { context, size in
-                    let cellSize = size.width / 19
-                    
+                    let boardSize = GameBoard.size
+                    let cellSize = size.width / CGFloat(boardSize)
+                    let halfCell = cellSize / 2
+                    let stoneRadius = cellSize * 0.35
+                    let stoneDiameter = cellSize * 0.7
+                    let captureRadius = cellSize * 0.2
+                    let captureDiameter = cellSize * 0.4
+                    let board = gameModel.board
+
                     // Draw grid lines
-                    for i in 0..<19 {
-                        let position = CGFloat(i) * cellSize + cellSize / 2
-                        
+                    for i in 0..<boardSize {
+                        let position = CGFloat(i) * cellSize + halfCell
+
                         // Vertical lines
                         context.stroke(
                             Path { path in
-                                path.move(to: CGPoint(x: position, y: cellSize / 2))
-                                path.addLine(to: CGPoint(x: position, y: size.height - cellSize / 2))
+                                path.move(to: CGPoint(x: position, y: halfCell))
+                                path.addLine(to: CGPoint(x: position, y: size.height - halfCell))
                             },
                             with: .color(gridLineColor),
                             lineWidth: 0.5
                         )
-                        
+
                         // Horizontal lines
                         context.stroke(
                             Path { path in
-                                path.move(to: CGPoint(x: cellSize / 2, y: position))
-                                path.addLine(to: CGPoint(x: size.width - cellSize / 2, y: position))
+                                path.move(to: CGPoint(x: halfCell, y: position))
+                                path.addLine(to: CGPoint(x: size.width - halfCell, y: position))
                             },
                             with: .color(gridLineColor),
                             lineWidth: 0.5
                         )
                     }
-                    
+
                     // Highlight pending captures with different color
                     for capture in gameModel.pendingCaptures {
                         let center = CGPoint(
-                            x: CGFloat(capture.col) * cellSize + cellSize / 2,
-                            y: CGFloat(capture.row) * cellSize + cellSize / 2
+                            x: CGFloat(capture.col) * cellSize + halfCell,
+                            y: CGFloat(capture.row) * cellSize + halfCell
                         )
-                        
+
                         context.fill(
                             Path(ellipseIn: CGRect(
-                                x: center.x - cellSize * 0.2,
-                                y: center.y - cellSize * 0.2,
-                                width: cellSize * 0.4,
-                                height: cellSize * 0.4
+                                x: center.x - captureRadius,
+                                y: center.y - captureRadius,
+                                width: captureDiameter,
+                                height: captureDiameter
                             )),
                             with: .color(.orange.opacity(0.3))
                         )
                     }
-                    
+
                     // Highlight last captures (after move is confirmed)
                     for capture in gameModel.lastCaptures {
                         if !gameModel.pendingCaptures.contains(where: { $0.row == capture.row && $0.col == capture.col }) {
                             let center = CGPoint(
-                                x: CGFloat(capture.col) * cellSize + cellSize / 2,
-                                y: CGFloat(capture.row) * cellSize + cellSize / 2
+                                x: CGFloat(capture.col) * cellSize + halfCell,
+                                y: CGFloat(capture.row) * cellSize + halfCell
                             )
-                            
+
                             context.fill(
                                 Path(ellipseIn: CGRect(
-                                    x: center.x - cellSize * 0.2,
-                                    y: center.y - cellSize * 0.2,
-                                    width: cellSize * 0.4,
-                                    height: cellSize * 0.4
+                                    x: center.x - captureRadius,
+                                    y: center.y - captureRadius,
+                                    width: captureDiameter,
+                                    height: captureDiameter
                                 )),
                                 with: .color(.red.opacity(0.3))
                             )
                         }
                     }
-                    
+
                     // Draw stones
-                    for row in 0..<19 {
-                        for col in 0..<19 {
-                            if let stone = gameModel.board[row][col] {
+                    for row in 0..<boardSize {
+                        for col in 0..<boardSize {
+                            if let stone = board[row][col] {
                                 let center = CGPoint(
-                                    x: CGFloat(col) * cellSize + cellSize / 2,
-                                    y: CGFloat(row) * cellSize + cellSize / 2
+                                    x: CGFloat(col) * cellSize + halfCell,
+                                    y: CGFloat(row) * cellSize + halfCell
                                 )
-                                
+
                                 let isPending = gameModel.pendingMove?.row == row && gameModel.pendingMove?.col == col
-                                
-                                // Shadow for stones - more pronounced
+
+                                // Shadow
                                 context.fill(
                                     Path(ellipseIn: CGRect(
-                                        x: center.x - cellSize * 0.35 + 2,
-                                        y: center.y - cellSize * 0.35 + 2,
-                                        width: cellSize * 0.7,
-                                        height: cellSize * 0.7
+                                        x: center.x - stoneRadius + 2,
+                                        y: center.y - stoneRadius + 2,
+                                        width: stoneDiameter,
+                                        height: stoneDiameter
                                     )),
                                     with: .color(.black.opacity(0.3))
                                 )
-                                
+
                                 // Stone with theme-aware colors
                                 let stoneColor = stone == .black ? blackStoneColor : whiteStoneColor
                                 context.fill(
                                     Path(ellipseIn: CGRect(
-                                        x: center.x - cellSize * 0.35,
-                                        y: center.y - cellSize * 0.35,
-                                        width: cellSize * 0.7,
-                                        height: cellSize * 0.7
+                                        x: center.x - stoneRadius,
+                                        y: center.y - stoneRadius,
+                                        width: stoneDiameter,
+                                        height: stoneDiameter
                                     )),
                                     with: .color(stoneColor.opacity(isPending ? 0.7 : 1.0))
                                 )
-                                
-                                // Border for white stones - subtle in both themes
+
+                                // Border for white stones
                                 if stone == .white {
                                     context.stroke(
                                         Path(ellipseIn: CGRect(
-                                            x: center.x - cellSize * 0.35,
-                                            y: center.y - cellSize * 0.35,
-                                            width: cellSize * 0.7,
-                                            height: cellSize * 0.7
+                                            x: center.x - stoneRadius,
+                                            y: center.y - stoneRadius,
+                                            width: stoneDiameter,
+                                            height: stoneDiameter
                                         )),
                                         with: .color(Color.gray.opacity(0.3)),
                                         lineWidth: 0.5
                                     )
                                 }
-                                
+
                                 // Highlight pending move
                                 if isPending {
                                     context.stroke(
                                         Path(ellipseIn: CGRect(
-                                            x: center.x - cellSize * 0.35,
-                                            y: center.y - cellSize * 0.35,
-                                            width: cellSize * 0.7,
-                                            height: cellSize * 0.7
+                                            x: center.x - stoneRadius,
+                                            y: center.y - stoneRadius,
+                                            width: stoneDiameter,
+                                            height: stoneDiameter
                                         )),
                                         with: .color(.blue),
                                         lineWidth: 2
@@ -306,11 +314,11 @@ struct PenteBoardView: View {
             .onTapGesture { location in
                 let padding: CGFloat = 5
                 let adjustedLocation = CGPoint(x: location.x - padding, y: location.y - padding)
-                let cellSize = (geometry.size.width - padding * 2) / 19
+                let cellSize = (geometry.size.width - padding * 2) / CGFloat(GameBoard.size)
                 let col = Int(adjustedLocation.x / cellSize)
                 let row = Int(adjustedLocation.y / cellSize)
-                
-                if col >= 0 && col < 19 && row >= 0 && row < 19 {
+
+                if col >= 0 && col < GameBoard.size && row >= 0 && row < GameBoard.size {
                     gameModel.makeMove(row: row, col: col)
                 }
             }

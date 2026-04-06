@@ -11,23 +11,25 @@ This is an iOS iMessage extension app that implements the board game Pente. The 
 
 ## Architecture
 
-The codebase follows a modular Model-View pattern with SwiftUI. **Refactored December 2024** into atomic, testable modules:
+The codebase follows a modular Model-View pattern with SwiftUI. Core game logic lives in a local Swift Package (`PenteCore/`), with the UI layer in the Messages extension.
 
-### Core Modules (Pente MessagesExtension/)
+### PenteCore (Local Swift Package)
+Pure game logic with no UIKit/SwiftUI dependencies:
 - **`GameTypes.swift`**: Core game types (Player, GameState, WinMethod, GameMoveDelegate)
 - **`GameBoard.swift`**: 19x19 board representation and basic operations
 - **`CaptureEngine.swift`**: Isolated capture detection logic following Pente rules
 - **`WinDetector.swift`**: Win condition checking (5-in-a-row and capture wins)
 - **`GameStateEncoder.swift`**: URL encoding/decoding for game state persistence in iMessage
+
+### Messages Extension UI Layer (Pente MessagesExtension/)
+- **`PenteGameModel.swift`**: Orchestrates PenteCore modules, handles game state
+- **`PenteGameView.swift`** + **`PenteBoardView.swift`**: SwiftUI views for game interface
+- **`MessagesViewController.swift`**: UIKit controller that hosts SwiftUI view in Messages extension
 - **`BoardImageGenerator.swift`**: Image generation for message previews with theme support
 
-### UI Layer
-- **`PenteGameModel.swift`**: Orchestrates modules, reduced from 440+ to ~160 lines
-- **`PenteGameView.swift`** + **`PenteBoardView.swift`**: SwiftUI views for game interface  
-- **`MessagesViewController.swift`**: UIKit controller that hosts SwiftUI view in Messages extension
-
-### Testing Suite
-- **`PenteTests/`**: Comprehensive test suite with 275+ tests covering all game rules, edge cases, UI components, and defensive programming
+### Testing
+- **`PenteCore/Tests/`**: Fast pure-logic tests runnable via `swift test` (no simulator)
+- **`PenteTests/`**: Full test suite (238+ tests) including UI, integration, and Messages framework tests
 
 ### Key Features
 
@@ -61,12 +63,24 @@ xcrun devicectl device install app --device "YOUR_DEVICE_UDID" "/path/to/Build/P
 ```
 
 ### Running Tests
-```bash
-# Use Xcode IDE (recommended for iMessage extensions)
-# Test Navigator (⌘+6) → Run tests
 
-# Command line (may have limitations with iMessage extension testing)
-xcodebuild test -project Pente.xcodeproj -scheme PenteTests -destination "platform=iOS Simulator,name=iPhone 16"
+```bash
+# Fast: PenteCore pure-logic tests (no simulator, ~0.01 seconds)
+cd PenteCore && swift test
+
+# Full: All 238+ tests via xcodebuild (requires simulator)
+xcodebuild test -project Pente.xcodeproj -scheme PenteTests \
+  -destination "platform=iOS Simulator,id=EF30FA9D-8D3D-4EC7-9571-C0D01151374E" \
+  -only-testing:PenteTests
+
+# Structured results (preferred over grep):
+xcodebuild test -project Pente.xcodeproj -scheme PenteTests \
+  -destination "platform=iOS Simulator,id=EF30FA9D-8D3D-4EC7-9571-C0D01151374E" \
+  -resultBundlePath /tmp/PenteTestResults.xcresult
+xcrun xcresulttool get test-results summary --path /tmp/PenteTestResults.xcresult
+
+# Boot simulator if needed:
+xcrun simctl boot EF30FA9D-8D3D-4EC7-9571-C0D01151374E
 ```
 
 ## Development Notes
@@ -91,7 +105,9 @@ The extension uses **iMessage App Icon.appiconset** (NOT sticker format):
 
 - Game state persists through message URL encoding/decoding via `GameStateEncoder`
 - Extension runs in sandboxed environment within iMessage
-- Use `MessagesViewController.swift:15` for move delegation between game model and Messages framework
+- **MSSession**: All messages in a game share one `MSSession` to prevent replaying from old message states
+- **Player Assignment**: UUID-based `blackPlayerID` tracking prevents playing opponent's turn
+- Use `MessagesViewController.swift` for move delegation between game model and Messages framework
 - Board image generation in `BoardImageGenerator.swift` creates message previews with theme support
 - Extension identifier: `com.apple.message-payload-provider` in `Info.plist`
 
@@ -105,10 +121,11 @@ The extension uses **iMessage App Icon.appiconset** (NOT sticker format):
 
 ### Testing Strategy
 
-- **Comprehensive Suite**: 275+ tests in `/PenteTests/` covering all game rules
-- **Simulator Testing**: Fully functional for development and validation
+- **PenteCore Tests**: 36+ fast tests via `swift test` — no simulator, runs in <1 second
+- **Full Suite**: 238+ tests in `/PenteTests/` covering all game rules, UI, and integration
+- **Pre-commit Hook**: Automatically runs PenteCore tests before each commit
+- **Simulator Testing**: Required for UI/Messages framework tests
 - **Physical Device**: Required for final iMessage extension validation
-- **Test Execution**: Use Xcode Test Navigator (⌘+6) for iMessage extension tests
 
 ### **MANDATORY TESTING REQUIREMENTS**
 
@@ -146,3 +163,23 @@ Repository: https://github.com/colemadden/PenteSwift.git
 - All refactoring and icon fixes committed
 - Test suite included in repository
 - Use `git push` to sync changes to GitHub
+
+### App Store Connect API Access
+
+Programmatic access to App Store Connect is available via the REST API:
+- **API Key ID**: `423RCYC29Y`
+- **Issuer ID**: `a6c794e7-34a7-412d-8694-a630ed90701c`
+- **Key File**: `AuthKey_423RCYC29Y.p8` (in project root, DO NOT commit)
+- **App ID**: `6748970073`
+- **Bundle ID**: `colemadden.Pente`
+- **SKU**: `PenteForIMessage`
+- **Team ID**: `SB4A7WG2KH`
+
+**How to use**: Generate a JWT (ES256, 20min expiry, audience `appstoreconnect-v1`) and call `https://api.appstoreconnect.apple.com/v1/...` endpoints. Python example with `jwt` library works. `xcrun altool` also accepts `--apiKey` and `--apiIssuer` flags.
+
+**Useful endpoints**:
+- List apps: `GET /v1/apps`
+- List builds: `GET /v1/builds?filter[app]={appId}&sort=-uploadedDate`
+- Beta groups: `GET /v1/apps/{appId}/betaGroups`
+- Beta testers: `GET /v1/betaTesters?filter[apps]={appId}`
+- Upload builds: `xcrun altool --upload-app --type ios --file <ipa> --apiKey <key> --apiIssuer <issuer>`

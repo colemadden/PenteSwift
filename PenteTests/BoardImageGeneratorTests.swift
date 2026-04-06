@@ -1,6 +1,6 @@
 import XCTest
 import UIKit
-@testable import Pente_MessagesExtension
+import PenteCore
 
 final class BoardImageGeneratorTests: XCTestCase {
     
@@ -298,8 +298,8 @@ final class BoardImageGeneratorTests: XCTestCase {
             colorScheme: .light
         )
         
-        // Should handle gracefully without crashing
-        XCTAssertNotNil(image)
+        // Should return nil for invalid board dimensions
+        XCTAssertNil(image)
     }
     
     func testZeroSize() {

@@ -9,6 +9,9 @@
 /* Begin PBXBuildFile section */
 		503BD5B62E12217000280E36 /* Pente MessagesExtension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 503BD5B52E12217000280E36 /* Pente MessagesExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		503BD5BB2E12217000280E36 /* Messages.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 503BD5BA2E12217000280E36 /* Messages.framework */; };
+		E00000012E5AAAA100000001 /* PenteCore in Frameworks */ = {isa = PBXBuildFile; productRef = E00000022E5AAAA100000001 /* PenteCore */; };
+		E00000032E5AAAA100000002 /* PenteCore in Frameworks */ = {isa = PBXBuildFile; productRef = E00000042E5AAAA100000002 /* PenteCore */; };
+
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -50,6 +53,14 @@
 			);
 			target = 503BD5B42E12217000280E36 /* Pente MessagesExtension */;
 		};
+		503BD65D2E2DA10000280E36 /* Exceptions for "Pente MessagesExtension" folder in "PenteTests" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Info.plist,
+				Base.lproj/MainInterface.storyboard,
+			);
+			target = 503BD6552E2DA00D00280E36 /* PenteTests */;
+		};
 /* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -62,6 +73,7 @@
 			isa = PBXFileSystemSynchronizedRootGroup;
 			exceptions = (
 				503BD5C52E12217100280E36 /* Exceptions for "Pente MessagesExtension" folder in "Pente MessagesExtension" target */,
+				503BD65D2E2DA10000280E36 /* Exceptions for "Pente MessagesExtension" folder in "PenteTests" target */,
 			);
 			path = "Pente MessagesExtension";
 			sourceTree = "<group>";
@@ -79,6 +91,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				503BD5BB2E12217000280E36 /* Messages.framework in Frameworks */,
+				E00000012E5AAAA100000001 /* PenteCore in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -86,6 +99,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				E00000032E5AAAA100000002 /* PenteCore in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -163,6 +177,7 @@
 			);
 			name = "Pente MessagesExtension";
 			packageProductDependencies = (
+				E00000022E5AAAA100000001 /* PenteCore */,
 			);
 			productName = "Pente MessagesExtension";
 			productReference = 503BD5B52E12217000280E36 /* Pente MessagesExtension.appex */;
@@ -181,10 +196,12 @@
 			dependencies = (
 			);
 			fileSystemSynchronizedGroups = (
+				503BD5BC2E12217000280E36 /* Pente MessagesExtension */,
 				503BD6572E2DA00D00280E36 /* PenteTests */,
 			);
 			name = PenteTests;
 			packageProductDependencies = (
+				E00000042E5AAAA100000002 /* PenteCore */,
 			);
 			productName = PenteTests;
 			productReference = 503BD6562E2DA00D00280E36 /* PenteTests.xctest */;
@@ -222,6 +239,9 @@
 			mainGroup = 503BD5A52E12216E00280E36;
 			minimizedProjectReferenceProxies = 1;
 			preferredProjectObjectVersion = 77;
+			packageReferences = (
+				E00000052E5AAAA100000001 /* XCLocalSwiftPackageReference "PenteCore" */,
+			);
 			productRefGroup = 503BD5AD2E12216E00280E36 /* Products */;
 			projectDirPath = "";
 			projectRoot = "";
@@ -289,7 +309,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = "iMessage App Icon";
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 3;
+				CURRENT_PROJECT_VERSION = 5;
 				DEVELOPMENT_TEAM = SB4A7WG2KH;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = "Pente MessagesExtension/Info.plist";
@@ -300,7 +320,7 @@
 					"@executable_path/Frameworks",
 					"@executable_path/../../Frameworks",
 				);
-				MARKETING_VERSION = 1.1;
+				MARKETING_VERSION = 1.2;
 				PRODUCT_BUNDLE_IDENTIFIER = colemadden.Pente.MessagesExtension;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
@@ -317,7 +337,7 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = "iMessage App Icon";
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 3;
+				CURRENT_PROJECT_VERSION = 5;
 				DEVELOPMENT_TEAM = SB4A7WG2KH;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = "Pente MessagesExtension/Info.plist";
@@ -328,7 +348,7 @@
 					"@executable_path/Frameworks",
 					"@executable_path/../../Frameworks",
 				);
-				MARKETING_VERSION = 1.1;
+				MARKETING_VERSION = 1.2;
 				PRODUCT_BUNDLE_IDENTIFIER = colemadden.Pente.MessagesExtension;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
@@ -464,13 +484,14 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 3;
+				CURRENT_PROJECT_VERSION = 5;
 				DEVELOPMENT_TEAM = SB4A7WG2KH;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_ITSAppUsesNonExemptEncryption = NO;
 				INFOPLIST_KEY_UILaunchStoryboardName = LaunchScreen;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
-				MARKETING_VERSION = 1.1;
+				MARKETING_VERSION = 1.2;
 				PRODUCT_BUNDLE_IDENTIFIER = colemadden.Pente;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
@@ -486,13 +507,14 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CLANG_ENABLE_MODULES = YES;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 3;
+				CURRENT_PROJECT_VERSION = 5;
 				DEVELOPMENT_TEAM = SB4A7WG2KH;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_ITSAppUsesNonExemptEncryption = NO;
 				INFOPLIST_KEY_UILaunchStoryboardName = LaunchScreen;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
-				MARKETING_VERSION = 1.1;
+				MARKETING_VERSION = 1.2;
 				PRODUCT_BUNDLE_IDENTIFIER = colemadden.Pente;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = YES;
@@ -504,36 +526,32 @@
 		503BD65B2E2DA00D00280E36 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				BUNDLE_LOADER = "$(TEST_HOST)";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 3;
+				CURRENT_PROJECT_VERSION = 5;
 				DEVELOPMENT_TEAM = SB4A7WG2KH;
 				GENERATE_INFOPLIST_FILE = YES;
-				MARKETING_VERSION = 1.1;
+				MARKETING_VERSION = 1.2;
 				PRODUCT_BUNDLE_IDENTIFIER = colemadden.PenteTests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = NO;
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
-				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Pente MessagesExtension.appex/Pente MessagesExtension";
 			};
 			name = Debug;
 		};
 		503BD65C2E2DA00D00280E36 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				BUNDLE_LOADER = "$(TEST_HOST)";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 3;
+				CURRENT_PROJECT_VERSION = 5;
 				DEVELOPMENT_TEAM = SB4A7WG2KH;
 				GENERATE_INFOPLIST_FILE = YES;
-				MARKETING_VERSION = 1.1;
+				MARKETING_VERSION = 1.2;
 				PRODUCT_BUNDLE_IDENTIFIER = colemadden.PenteTests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = NO;
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
-				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Pente MessagesExtension.appex/Pente MessagesExtension";
 			};
 			name = Release;
 		};
@@ -577,6 +595,24 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCLocalSwiftPackageReference section */
+		E00000052E5AAAA100000001 /* XCLocalSwiftPackageReference "PenteCore" */ = {
+			isa = XCLocalSwiftPackageReference;
+			relativePath = PenteCore;
+		};
+/* End XCLocalSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		E00000022E5AAAA100000001 /* PenteCore */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = PenteCore;
+		};
+		E00000042E5AAAA100000002 /* PenteCore */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = PenteCore;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = 503BD5A62E12216E00280E36 /* Project object */;
 }

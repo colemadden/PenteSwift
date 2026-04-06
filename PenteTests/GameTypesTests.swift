@@ -1,5 +1,5 @@
 import XCTest
-@testable import Pente_MessagesExtension
+import PenteCore
 
 final class GameTypesTests: XCTestCase {
     

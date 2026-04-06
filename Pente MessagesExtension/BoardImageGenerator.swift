@@ -1,5 +1,6 @@
 import SwiftUI
 import UIKit
+import PenteCore
 
 struct BoardImageGenerator {
     static func generateBoardImage(
@@ -8,6 +9,10 @@ struct BoardImageGenerator {
         size: CGSize = CGSize(width: 300, height: 300),
         colorScheme: UIUserInterfaceStyle
     ) -> UIImage? {
+        guard board.count == GameBoard.size,
+              board.allSatisfy({ $0.count == GameBoard.size }) else {
+            return nil
+        }
         let renderer = UIGraphicsImageRenderer(size: size)
         
         return renderer.image { context in
@@ -37,14 +42,14 @@ struct BoardImageGenerator {
             
             let margin: CGFloat = size.width * 0.05  // 5% margin
             let boardSize = size.width - 2 * margin
-            let cellSize = boardSize / 18  // 18 gaps between 19 lines
+            let cellSize = boardSize / CGFloat(GameBoard.size - 1)
             let stoneRadius = cellSize * 0.35
             
             // Draw grid lines
             ctx.setStrokeColor(gridLineColor.cgColor)
             ctx.setLineWidth(0.5)
             
-            for i in 0..<19 {
+            for i in 0..<GameBoard.size {
                 let position = margin + CGFloat(i) * cellSize
                 
                 // Vertical lines
@@ -59,8 +64,8 @@ struct BoardImageGenerator {
             }
             
             // Draw stones on intersections
-            for row in 0..<19 {
-                for col in 0..<19 {
+            for row in 0..<GameBoard.size {
+                for col in 0..<GameBoard.size {
                     if let stone = board[row][col] {
                         // Place stones on intersections
                         let center = CGPoint(

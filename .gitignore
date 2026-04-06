@@ -1,0 +1,23 @@
+# Secrets & credentials
+AuthKey_*.p8
+*.cer
+distribution.cer
+
+# Build artifacts
+build/
+DerivedData/
+*.xcarchive
+PenteCore/.build/
+
+# Xcode user data
+xcuserdata/
+*.xcuserdatad/
+
+# Node
+node_modules/
+
+# Misc
+.DS_Store
+*.rtf
+llm-council.sh
+pente-project-summary.md

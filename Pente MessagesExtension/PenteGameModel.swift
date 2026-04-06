@@ -1,4 +1,5 @@
 import SwiftUI
+import PenteCore
 
 class PenteGameModel: ObservableObject {
     @Published private var gameBoard = GameBoard()
@@ -22,10 +23,6 @@ class PenteGameModel: ObservableObject {
         return gameBoard.asArray
     }
     
-    var isFirstMoveReadyToSend: Bool {
-        return isNewGamePendingSend
-    }
-    
     func setPlayerAssignment(_ playerColor: Player?, blackPlayerID: String?) {
         self.assignedPlayerColor = playerColor
         self.blackPlayerID = blackPlayerID
@@ -44,7 +41,7 @@ class PenteGameModel: ObservableObject {
     }
     
     func sendFirstMove() {
-        guard isFirstMoveReadyToSend else { return }
+        guard isNewGamePendingSend else { return }
         isNewGamePendingSend = false
         moveDelegate?.gameDidMakeMove()
     }
@@ -54,7 +51,7 @@ class PenteGameModel: ObservableObject {
         guard case .playing = gameState else { return }
         
         // Prevent moves during first move ready-to-send state
-        guard !isFirstMoveReadyToSend else { return }
+        guard !isNewGamePendingSend else { return }
         
         // Check if this player can make moves
         guard canMakeMove else { return }
@@ -144,15 +141,13 @@ class PenteGameModel: ObservableObject {
     }
     
     func loadFromURL(_ url: URL) {
-        GameStateDecoder.loadFromURL(
-            url,
-            board: &gameBoard,
-            currentPlayer: &currentPlayer,
-            capturedCount: &capturedCount,
-            gameState: &gameState,
-            moveHistory: &moveHistory,
-            blackPlayerID: &blackPlayerID
-        )
+        guard let decoded = GameStateDecoder.decodeFromURL(url) else { return }
+        gameBoard = decoded.board
+        currentPlayer = decoded.currentPlayer
+        capturedCount = decoded.capturedCount
+        gameState = decoded.gameState
+        moveHistory = decoded.moveHistory
+        blackPlayerID = decoded.blackPlayerID
     }
     
     func resetGame() {
@@ -175,8 +170,9 @@ class PenteGameModel: ObservableObject {
         resetGame()
         self.blackPlayerID = blackPlayerID
         // Place the first black stone in the center as a completed move
-        gameBoard.placeStone(.black, at: 9, col: 9)
-        moveHistory.append((row: 9, col: 9, player: .black))
+        let center = GameBoard.size / 2
+        gameBoard.placeStone(.black, at: center, col: center)
+        moveHistory.append((row: center, col: center, player: .black))
         currentPlayer = .white // Switch to white for the actual first move
         isNewGamePendingSend = true // Flag that this is a new game ready to send
     }

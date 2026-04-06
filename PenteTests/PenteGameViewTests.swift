@@ -1,6 +1,6 @@
 import XCTest
 import SwiftUI
-@testable import Pente_MessagesExtension
+import PenteCore
 
 final class PenteGameViewTests: XCTestCase {
     
@@ -148,7 +148,7 @@ final class PenteGameViewTests: XCTestCase {
         
         // Should display Send button for first move
         XCTAssertNotNil(gameView)
-        XCTAssertTrue(gameModel.isFirstMoveReadyToSend)
+        XCTAssertTrue(gameModel.isNewGamePendingSend)
     }
     
     // MARK: - Capture Count Display Tests
@@ -226,11 +226,11 @@ final class PenteGameViewTests: XCTestCase {
         
         // Start new game
         gameModel.startNewGame()
-        XCTAssertTrue(gameModel.isFirstMoveReadyToSend)
+        XCTAssertTrue(gameModel.isNewGamePendingSend)
         
         // Send first move
         gameModel.sendFirstMove()
-        XCTAssertFalse(gameModel.isFirstMoveReadyToSend)
+        XCTAssertFalse(gameModel.isNewGamePendingSend)
         
         // Make subsequent moves
         gameModel.makeMove(row: 8, col: 8)
@@ -323,15 +323,17 @@ final class PenteGameViewTests: XCTestCase {
     // MARK: - Memory Tests
     
     func testViewMemoryManagement() {
-        weak var weakGameView: PenteGameView?
-        
+        // PenteGameView is a struct (SwiftUI View), so weak references don't apply.
+        // Instead, verify that the underlying ObservableObject (gameModel) can be released.
+        weak var weakModel: PenteGameModel?
+
         autoreleasepool {
-            let gameView = PenteGameView(gameModel: gameModel)
-            weakGameView = gameView
-            XCTAssertNotNil(weakGameView)
+            let tempModel = PenteGameModel()
+            weakModel = tempModel
+            let _ = PenteGameView(gameModel: tempModel)
+            XCTAssertNotNil(weakModel)
         }
-        
-        // View should be deallocated (though SwiftUI views might be retained differently)
-        // This test might not work as expected with SwiftUI's view system
+
+        XCTAssertNil(weakModel, "Game model should be deallocated when no longer referenced")
     }
 }

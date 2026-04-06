@@ -1,5 +1,5 @@
 import XCTest
-@testable import Pente_MessagesExtension
+import PenteCore
 
 // Mock delegate for testing
 class MockGameMoveDelegate: GameMoveDelegate {
@@ -48,7 +48,7 @@ final class PenteGameModelTests: XCTestCase {
         XCTAssertEqual(gameModel.pendingCaptures.count, 0)
         XCTAssertEqual(gameModel.lastCaptures.count, 0)
         XCTAssertFalse(gameModel.isNewGamePendingSend)
-        XCTAssertFalse(gameModel.isFirstMoveReadyToSend)
+        XCTAssertFalse(gameModel.isNewGamePendingSend)
         
         // Board should be empty
         for row in 0..<19 {
@@ -71,7 +71,7 @@ final class PenteGameModelTests: XCTestCase {
         XCTAssertEqual(gameModel.moveHistory[0].col, 9)
         XCTAssertEqual(gameModel.moveHistory[0].player, .black)
         XCTAssertTrue(gameModel.isNewGamePendingSend)
-        XCTAssertTrue(gameModel.isFirstMoveReadyToSend)
+        XCTAssertTrue(gameModel.isNewGamePendingSend)
     }
     
     func testSendFirstMove() {
@@ -85,7 +85,7 @@ final class PenteGameModelTests: XCTestCase {
         wait(for: [expectation], timeout: 1.0)
         
         XCTAssertFalse(gameModel.isNewGamePendingSend)
-        XCTAssertFalse(gameModel.isFirstMoveReadyToSend)
+        XCTAssertFalse(gameModel.isNewGamePendingSend)
         XCTAssertEqual(mockDelegate.moveCallCount, 1)
     }
     
@@ -223,7 +223,8 @@ final class PenteGameModelTests: XCTestCase {
         gameModel.currentPlayer = .white
         gameModel.makeMove(row: 10, col: 11) // White stone
         gameModel.confirmMove()
-        
+
+        gameModel.currentPlayer = .white
         gameModel.makeMove(row: 10, col: 12) // White stone
         gameModel.confirmMove()
         
@@ -268,19 +269,21 @@ final class PenteGameModelTests: XCTestCase {
         // Setup game state with 4 captures already
         gameModel.capturedCount[.black] = 4
         
-        // Setup a capture scenario
+        // Setup a capture scenario: Black at col 9, White at col 10, White at col 11, Black captures at col 12
+        gameModel.currentPlayer = .black
+        gameModel.makeMove(row: 10, col: 9) // Place supporting black stone first
+        gameModel.confirmMove()
+
         gameModel.currentPlayer = .white
         gameModel.makeMove(row: 10, col: 10)
         gameModel.confirmMove()
-        
+
+        gameModel.currentPlayer = .white
         gameModel.makeMove(row: 10, col: 11)
         gameModel.confirmMove()
-        
+
         // Black captures to win
         gameModel.currentPlayer = .black
-        gameModel.makeMove(row: 10, col: 9) // Place supporting stone first
-        gameModel.confirmMove()
-        
         gameModel.makeMove(row: 10, col: 12) // Capturing move
         gameModel.confirmMove()
         
@@ -393,10 +396,11 @@ final class PenteGameModelTests: XCTestCase {
         XCTAssertEqual(gameModel.board[9][9], .black)
         XCTAssertEqual(gameModel.board[10][10], .white)
         XCTAssertEqual(gameModel.currentPlayer, .black)
-        XCTAssertEqual(gameModel.capturedCount[.black], 1)
+        // Capture counts are computed from move replay, not URL params
+        XCTAssertEqual(gameModel.capturedCount[.black], 0)
         XCTAssertEqual(gameModel.capturedCount[.white], 0)
     }
-    
+
     // MARK: - Board Image Generation Tests
     
     func testGenerateBoardImageLight() {
@@ -442,7 +446,7 @@ final class PenteGameModelTests: XCTestCase {
         
         // Send first move
         gameModel.sendFirstMove()
-        XCTAssertFalse(gameModel.isFirstMoveReadyToSend)
+        XCTAssertFalse(gameModel.isNewGamePendingSend)
         
         // White makes a move
         gameModel.makeMove(row: 10, col: 10)
@@ -471,10 +475,11 @@ final class PenteGameModelTests: XCTestCase {
         gameModel.currentPlayer = .white
         gameModel.makeMove(row: 10, col: 11)
         gameModel.confirmMove()
-        
+
+        gameModel.currentPlayer = .white
         gameModel.makeMove(row: 10, col: 12)
         gameModel.confirmMove()
-        
+
         // Black captures
         gameModel.currentPlayer = .black
         gameModel.makeMove(row: 10, col: 13)
