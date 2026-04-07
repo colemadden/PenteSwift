@@ -106,16 +106,20 @@ struct BoardImageGenerator {
                 }
             }
             
-            // Highlight the last move with a blue ring
-            if let lastMove = moveHistory.last {
+            // Last move indicator (solid green ring — matches live view's committed
+            // ring. 2pt lineWidth to survive iMessage bubble compression; uses
+            // UIColor.systemGreen so it resolves to the same adaptive green as
+            // Color(.systemGreen) in PenteGameView.
+            if let lastMove = moveHistory.last,
+               lastMove.row >= 0, lastMove.row < GameBoard.size,
+               lastMove.col >= 0, lastMove.col < GameBoard.size,
+               board[lastMove.row][lastMove.col] != nil {
                 let center = CGPoint(
                     x: margin + CGFloat(lastMove.col) * cellSize,
                     y: margin + CGFloat(lastMove.row) * cellSize
                 )
-                
-                // Draw a blue ring around the stone outline
-                ctx.setStrokeColor(UIColor.systemBlue.cgColor)
-                ctx.setLineWidth(1.0)
+                ctx.setStrokeColor(UIColor.systemGreen.cgColor)
+                ctx.setLineWidth(2.0)
                 ctx.strokeEllipse(in: CGRect(
                     x: center.x - stoneRadius,
                     y: center.y - stoneRadius,

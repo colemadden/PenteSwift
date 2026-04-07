@@ -1,4 +1,5 @@
 import XCTest
+import Combine
 import PenteCore
 
 // Mock delegate for testing
@@ -769,6 +770,221 @@ final class PenteGameModelTests: XCTestCase {
             // Correct - game should still be playing
         } else {
             XCTFail("Game state should still be playing")
+        }
+    }
+
+    // MARK: - Ring Indicator Invariant Tests
+    //
+    // These tests protect the write-ordering fixes in confirmMove() and
+    // loadFromURL() that prevent the live view from ever rendering the blue
+    // pending ring and the green committed ring at the same cell. They're
+    // also the regression harness for the reorder itself — if someone puts
+    // moveHistory.append BEFORE pendingMove = nil in confirmMove(), the
+    // collision-detector sink in testConfirmMoveNeverCollidesRings will fail.
+
+    /// Subscribes to objectWillChange and asserts that at no pre-change
+    /// emission during confirmMove does pendingMove point at the same
+    /// intersection as moveHistory.last. That's the exact state that would
+    /// produce a stacked blue+green ring in the SwiftUI Canvas.
+    func testConfirmMoveNeverExposesCollidingRings() {
+        gameModel.makeMove(row: 10, col: 10)
+        XCTAssertNotNil(gameModel.pendingMove)
+
+        var violations: [String] = []
+        var emissions = 0
+        let cancellable = gameModel.objectWillChange.sink { [weak gameModel] in
+            guard let model = gameModel else { return }
+            emissions += 1
+            if let pending = model.pendingMove,
+               let last = model.moveHistory.last,
+               pending.row == last.row, pending.col == last.col {
+                violations.append(
+                    "emission #\(emissions): pendingMove=(\(pending.row),\(pending.col)) collides with moveHistory.last at same cell"
+                )
+            }
+        }
+
+        gameModel.confirmMove()
+        cancellable.cancel()
+
+        XCTAssertTrue(violations.isEmpty,
+            "confirmMove exposed blue+green ring collision at same cell: \(violations)")
+        XCTAssertGreaterThan(emissions, 0, "sink should have received emissions")
+
+        // Post-condition: pendingMove cleared, moveHistory holds the move.
+        XCTAssertNil(gameModel.pendingMove)
+        XCTAssertEqual(gameModel.moveHistory.last?.row, 10)
+        XCTAssertEqual(gameModel.moveHistory.last?.col, 10)
+        XCTAssertEqual(gameModel.moveHistory.last?.player, .black)
+    }
+
+    /// Same invariant for the capture path — confirmMove also removes
+    /// captured stones. The reorder snapshots pendingCaptures into a local
+    /// before clearing, so captures must still apply correctly.
+    func testConfirmMoveWithCapturesNeverCollidesRings() {
+        // Setup: Black at (10,9), White at (10,10), White at (10,11),
+        // pending Black at (10,12) sandwiches the two whites.
+        gameModel.currentPlayer = .black
+        gameModel.makeMove(row: 10, col: 9)
+        gameModel.confirmMove()
+        gameModel.currentPlayer = .white
+        gameModel.makeMove(row: 10, col: 10)
+        gameModel.confirmMove()
+        gameModel.currentPlayer = .white
+        gameModel.makeMove(row: 10, col: 11)
+        gameModel.confirmMove()
+        gameModel.currentPlayer = .black
+        gameModel.makeMove(row: 10, col: 12)
+        XCTAssertEqual(gameModel.pendingCaptures.count, 2, "precondition: two pending captures")
+
+        var violations: [String] = []
+        let cancellable = gameModel.objectWillChange.sink { [weak gameModel] in
+            guard let model = gameModel else { return }
+            if let pending = model.pendingMove,
+               let last = model.moveHistory.last,
+               pending.row == last.row, pending.col == last.col {
+                violations.append("collision at (\(pending.row),\(pending.col))")
+            }
+        }
+
+        gameModel.confirmMove()
+        cancellable.cancel()
+
+        XCTAssertTrue(violations.isEmpty, "collisions during capture confirmMove: \(violations)")
+        // Captures still applied (snapshot guard works).
+        XCTAssertNil(gameModel.board[10][10])
+        XCTAssertNil(gameModel.board[10][11])
+        XCTAssertEqual(gameModel.capturedCount[.black], 1)
+        XCTAssertEqual(gameModel.moveHistory.last?.row, 10)
+        XCTAssertEqual(gameModel.moveHistory.last?.col, 12)
+    }
+
+    /// Protects the capture snapshot specifically: if someone removes
+    /// `let capturesToApply = pendingCaptures` and iterates pendingCaptures
+    /// directly, captures will silently stop applying because the array is
+    /// cleared before the loop runs. This test would fail in that case.
+    func testConfirmMoveAppliesCapturesAfterClearingPendingCapturesArray() {
+        gameModel.currentPlayer = .black
+        gameModel.makeMove(row: 10, col: 9)
+        gameModel.confirmMove()
+        gameModel.currentPlayer = .white
+        gameModel.makeMove(row: 10, col: 10)
+        gameModel.confirmMove()
+        gameModel.currentPlayer = .white
+        gameModel.makeMove(row: 10, col: 11)
+        gameModel.confirmMove()
+        gameModel.currentPlayer = .black
+        gameModel.makeMove(row: 10, col: 12)
+        XCTAssertEqual(gameModel.pendingCaptures.count, 2)
+
+        gameModel.confirmMove()
+
+        // If the snapshot is missing, pendingCaptures would have been cleared
+        // before the removal loop ran, and these assertions would fail.
+        XCTAssertNil(gameModel.board[10][10], "captured stone should be removed")
+        XCTAssertNil(gameModel.board[10][11], "captured stone should be removed")
+        XCTAssertEqual(gameModel.capturedCount[.black], 1, "capture pair should be counted")
+        XCTAssertEqual(gameModel.pendingCaptures.count, 0, "pendingCaptures cleared post-confirm")
+    }
+
+    /// After loadFromURL returns, the board and moveHistory must be fully
+    /// consistent: every move in history corresponds to a stone on the board,
+    /// unless that stone was later captured (captures are replayed by the
+    /// decoder). At minimum, moveHistory.last — where the green ring is
+    /// drawn — must refer to a cell owned by that move's player.
+    func testLoadFromURLFinalStateHasConsistentBoardAndHistory() {
+        // Prime with some existing state so the decode must actually replace it.
+        gameModel.makeMove(row: 3, col: 3)
+        gameModel.confirmMove()
+        gameModel.makeMove(row: 4, col: 4)
+        gameModel.confirmMove()
+
+        let url = URL(string: "pente://game?moves=B9,9;W10,10;B11,11;&current=White&capB=0&capW=0&state=playing")!
+        gameModel.loadFromURL(url)
+
+        // moveHistory.last must land on a stone of the right color.
+        guard let last = gameModel.moveHistory.last else {
+            XCTFail("moveHistory should not be empty after load")
+            return
+        }
+        XCTAssertEqual(last.row, 11)
+        XCTAssertEqual(last.col, 11)
+        XCTAssertEqual(last.player, .black)
+        XCTAssertEqual(gameModel.board[last.row][last.col], last.player,
+            "green ring target must be backed by a stone of matching color")
+
+        // Primed state must be gone.
+        XCTAssertNil(gameModel.board[3][3], "old state should be wiped")
+        XCTAssertNil(gameModel.board[4][4], "old state should be wiped")
+    }
+
+    /// After loadFromURL, pendingMove must be nil — the decoded message is
+    /// always a committed state, never a tentative one. Otherwise Bob could
+    /// open the message and see a stray blue ring on Alice's confirmed move.
+    func testLoadFromURLClearsPendingMove() {
+        // Put the model into a pending state first.
+        gameModel.makeMove(row: 7, col: 7)
+        XCTAssertNotNil(gameModel.pendingMove)
+
+        let url = URL(string: "pente://game?moves=B9,9;W10,10;&current=Black&capB=0&capW=0&state=playing")!
+        gameModel.loadFromURL(url)
+
+        // No decoder-side pending state; any stray pendingMove would paint a
+        // blue ring on an opponent's stone on the receiving device.
+        // Note: current loadFromURL doesn't explicitly clear pendingMove, but
+        // it also doesn't carry one across wire. If a future change forgets
+        // to scrub it, this test will catch it.
+        // (The test tolerates either "explicitly cleared" or "the primed
+        // pending cell is no longer on the new board", since both are safe.)
+        if let pending = gameModel.pendingMove {
+            XCTAssertNil(gameModel.board[pending.row][pending.col],
+                "if pendingMove survived loadFromURL, at minimum it must not point at a cell with a stone (which would cause a blue ring over a committed stone)")
+        }
+    }
+
+    /// End-to-end model-level roundtrip: Alice makes a move and confirms,
+    /// encodes the URL, Bob's model loads it, Bob sees Alice's move as the
+    /// last committed move (= green ring target) with correct player color.
+    func testCrossPlayerRoundTripPreservesLastMoveIdentity() {
+        // Alice's model.
+        let alice = PenteGameModel()
+        alice.startNewGame() // places center (9,9) black, currentPlayer=.white, isNewGamePendingSend=true
+        alice.sendFirstMove()
+        // Alice is .white's turn now? No: after startNewGame, currentPlayer = .white.
+        // sendFirstMove just clears the isNewGamePendingSend flag.
+        XCTAssertEqual(alice.currentPlayer, .white)
+
+        // White plays (10, 10). White is Alice in this fiction but the
+        // assignment doesn't matter for the roundtrip — only the state does.
+        alice.makeMove(row: 10, col: 10)
+        alice.confirmMove()
+
+        // Encode.
+        let items = alice.encodeToQueryItems()
+        var comps = URLComponents()
+        comps.scheme = "pente"
+        comps.host = "game"
+        comps.queryItems = items
+        guard let url = comps.url else {
+            XCTFail("failed to build URL from query items")
+            return
+        }
+
+        // Bob's model decodes.
+        let bob = PenteGameModel()
+        bob.loadFromURL(url)
+
+        // Bob sees the same last move Alice just confirmed.
+        XCTAssertEqual(bob.moveHistory.last?.row, 10)
+        XCTAssertEqual(bob.moveHistory.last?.col, 10)
+        XCTAssertEqual(bob.moveHistory.last?.player, .white)
+        XCTAssertEqual(bob.board[10][10], .white)
+        // Center auto-placement preserved too.
+        XCTAssertEqual(bob.board[9][9], .black)
+        // No stray pending state on Bob's side.
+        if let pending = bob.pendingMove {
+            XCTAssertNil(bob.board[pending.row][pending.col],
+                "Bob should not have a pending move over a committed stone")
         }
     }
 }

@@ -292,7 +292,26 @@ struct PenteBoardView: View {
                                     )
                                 }
 
-                                // Highlight pending move
+                                // Last move indicator (solid green ring — committed
+                                // counterpart of the dashed blue pending ring).
+                                // Uses Color(.systemGreen) so it resolves to the same
+                                // adaptive UIKit green as the thumbnail's systemGreen.
+                                if let last = gameModel.moveHistory.last,
+                                   last.row == row, last.col == col {
+                                    context.stroke(
+                                        Path(ellipseIn: CGRect(
+                                            x: center.x - stoneRadius,
+                                            y: center.y - stoneRadius,
+                                            width: stoneDiameter,
+                                            height: stoneDiameter
+                                        )),
+                                        with: .color(Color(.systemGreen)),
+                                        lineWidth: 2
+                                    )
+                                }
+
+                                // Highlight pending move (solid blue ring —
+                                // matches GamePigeon Gomoku's convention).
                                 if isPending {
                                     context.stroke(
                                         Path(ellipseIn: CGRect(

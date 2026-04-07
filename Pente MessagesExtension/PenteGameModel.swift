@@ -84,16 +84,29 @@ class PenteGameModel: ObservableObject {
     
     func confirmMove() {
         guard let move = pendingMove else { return }
-        
+
+        // Snapshot captures before clearing (we still need them to remove stones below).
+        let capturesToApply = pendingCaptures
+
+        // Clear pending state FIRST so any intermediate SwiftUI render observes a
+        // consistent world: no dashed blue pending ring while the new solid green
+        // last-move ring is being placed. Belt-and-suspenders — SwiftUI normally
+        // coalesces @Published emissions within a synchronous method, but reordering
+        // eliminates any theoretical race where moveHistory.append publishes before
+        // pendingMove is cleared.
+        pendingMove = nil
+        pendingCaptures = []
+        lastCaptures = []
+
         // Add to move history
         moveHistory.append((row: move.row, col: move.col, player: currentPlayer))
-        
+
         // Remove captured stones and update count
-        for capture in pendingCaptures {
+        for capture in capturesToApply {
             gameBoard.removeStone(at: capture.row, col: capture.col)
         }
-        capturedCount[currentPlayer, default: 0] += pendingCaptures.count / 2
-        
+        capturedCount[currentPlayer, default: 0] += capturesToApply.count / 2
+
         // Check win conditions
         if WinDetector.checkFiveInARow(on: gameBoard, at: move.row, col: move.col, for: currentPlayer) {
             gameState = .won(by: currentPlayer, method: .fiveInARow)
@@ -103,15 +116,10 @@ class PenteGameModel: ObservableObject {
             // Switch players only if game continues
             currentPlayer = currentPlayer.opponent
         }
-        
+
         // Update move permissions after turn change
         updateMovePermissions()
-        
-        // Clear pending state
-        pendingMove = nil
-        pendingCaptures = []
-        lastCaptures = []
-        
+
         // Notify delegate that a move was made
         moveDelegate?.gameDidMakeMove()
     }
@@ -142,11 +150,15 @@ class PenteGameModel: ObservableObject {
     
     func loadFromURL(_ url: URL) {
         guard let decoded = GameStateDecoder.decodeFromURL(url) else { return }
+        // Assign board and moveHistory as close together as possible so any
+        // intermediate SwiftUI render during decode sees a consistent
+        // (board, moveHistory) pair — otherwise the last-move ring could
+        // briefly point at an old intersection on the new board.
         gameBoard = decoded.board
+        moveHistory = decoded.moveHistory
         currentPlayer = decoded.currentPlayer
         capturedCount = decoded.capturedCount
         gameState = decoded.gameState
-        moveHistory = decoded.moveHistory
         blackPlayerID = decoded.blackPlayerID
     }
     
