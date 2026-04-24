@@ -11,7 +11,6 @@
 		503BD5BB2E12217000280E36 /* Messages.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 503BD5BA2E12217000280E36 /* Messages.framework */; };
 		E00000012E5AAAA100000001 /* PenteCore in Frameworks */ = {isa = PBXBuildFile; productRef = E00000022E5AAAA100000001 /* PenteCore */; };
 		E00000032E5AAAA100000002 /* PenteCore in Frameworks */ = {isa = PBXBuildFile; productRef = E00000042E5AAAA100000002 /* PenteCore */; };
-
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -57,7 +56,6 @@
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
 				Info.plist,
-				Base.lproj/MainInterface.storyboard,
 			);
 			target = 503BD6552E2DA00D00280E36 /* PenteTests */;
 		};
@@ -235,13 +233,14 @@
 			knownRegions = (
 				en,
 				Base,
+				"zh-Hans",
 			);
 			mainGroup = 503BD5A52E12216E00280E36;
 			minimizedProjectReferenceProxies = 1;
-			preferredProjectObjectVersion = 77;
 			packageReferences = (
 				E00000052E5AAAA100000001 /* XCLocalSwiftPackageReference "PenteCore" */,
 			);
+			preferredProjectObjectVersion = 77;
 			productRefGroup = 503BD5AD2E12216E00280E36 /* Products */;
 			projectDirPath = "";
 			projectRoot = "";

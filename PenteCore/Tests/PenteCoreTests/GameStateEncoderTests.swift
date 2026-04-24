@@ -111,4 +111,29 @@ final class GameStateEncoderTests: XCTestCase {
 
         XCTAssertEqual(decoded.blackPlayerID, "test-id-123")
     }
+
+    // MARK: - Localization-safety invariant
+    //
+    // The URL wire format must remain English ("Black"/"White") forever so
+    // v1.2 messages in flight continue to decode on v1.3+ devices. This test
+    // fails loudly if Player.rawValue is ever localized by accident.
+    func testWireFormatNeverLocalized() {
+        let queryItems = GameStateEncoder.encodeToQueryItems(
+            moveHistory: [(row: 0, col: 0, player: .black)],
+            currentPlayer: .white,
+            capturedCount: [.black: 0, .white: 0],
+            gameState: .won(by: .black, method: .fiveInARow)
+        )
+
+        // Every player-related query value must be literal English "Black" or "White".
+        let playerValues = queryItems.compactMap { item -> String? in
+            guard ["current", "winner"].contains(item.name) else { return nil }
+            return item.value
+        }
+        XCTAssertFalse(playerValues.isEmpty)
+        for value in playerValues {
+            XCTAssertTrue(value == "Black" || value == "White",
+                          "Wire format leaked non-English value: \(value)")
+        }
+    }
 }

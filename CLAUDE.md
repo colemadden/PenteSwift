@@ -2,6 +2,12 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+## Code Minimization Rule (MANDATORY)
+
+When weighing two implementations, always pick the one that adds the **least code**. Do not abstract, centralize, or refactor for "future-proofing" — only abstract when doing so **cuts** total lines. Three similar lines beats a premature helper. No speculative extensibility hooks, no "we might need this later" protocols, no wrapper layers that exist solely to make a hypothetical future change easier. If the simpler option is ugly but shorter, it wins.
+
+When presenting implementation options, do not offer a "more elegant / more future-proof" alternative as a serious choice — mention it only to explicitly reject it, or omit it entirely. The minimal option is the default.
+
 ## Project Overview
 
 This is an iOS iMessage extension app that implements the board game Pente. The app consists of:

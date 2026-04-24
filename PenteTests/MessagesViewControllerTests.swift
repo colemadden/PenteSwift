@@ -141,8 +141,29 @@ final class MessagesViewControllerTests: XCTestCase {
         }
 
         if let layout = message.layout as? MSMessageTemplateLayout {
-            XCTAssertNotNil(layout.subcaption)
-            XCTAssertTrue(layout.subcaption?.contains("turn") == true || layout.subcaption?.contains("Move") == true)
+            // Verify the MVC picked the *turn* variant (not the win variant) by
+            // resolving the expected turn subcaption from the same bundle the
+            // MVC uses. This keeps behavioral coverage (right catalog key
+            // selected for .playing state) without hardcoding English strings,
+            // so the test also passes under a zh-Hans runner.
+            let bundle = Bundle(for: MessagesViewController.self)
+            // After 2 confirmed moves, next move is move 3, currentPlayer == .black.
+            let format = NSLocalizedString("layout.subcaption.turn.black", bundle: bundle, comment: "")
+            let expected = String(format: format, 3)
+            XCTAssertEqual(layout.subcaption, expected)
+
+            // Cross-check: must NOT be any of the win subcaptions.
+            let winKeys = [
+                "layout.subcaption.win.black.fiveInARow",
+                "layout.subcaption.win.white.fiveInARow",
+                "layout.subcaption.win.black.fiveCaptures",
+                "layout.subcaption.win.white.fiveCaptures",
+            ]
+            for key in winKeys {
+                let winString = NSLocalizedString(key, bundle: bundle, comment: "")
+                XCTAssertNotEqual(layout.subcaption, winString,
+                                  "In-progress subcaption should not match win variant '\(key)'")
+            }
         }
     }
 
@@ -153,7 +174,12 @@ final class MessagesViewControllerTests: XCTestCase {
         let message = viewController.createMessage()
 
         if let layout = message.layout as? MSMessageTemplateLayout {
-            XCTAssertTrue(layout.subcaption?.contains("wins") == true)
+            // Verify the MVC picked the correct *win* variant by resolving the
+            // expected string from the same bundle the MVC uses. Locale-neutral
+            // and still asserts the .won → win.black.fiveInARow code path.
+            let bundle = Bundle(for: MessagesViewController.self)
+            let expected = NSLocalizedString("layout.subcaption.win.black.fiveInARow", bundle: bundle, comment: "")
+            XCTAssertEqual(layout.subcaption, expected)
         }
     }
 
@@ -166,8 +192,9 @@ final class MessagesViewControllerTests: XCTestCase {
 
         if let layout = message.layout as? MSMessageTemplateLayout {
             XCTAssertNotNil(layout.trailingSubcaption)
-            XCTAssertTrue(layout.trailingSubcaption?.contains("B:2") == true)
-            XCTAssertTrue(layout.trailingSubcaption?.contains("W:1") == true)
+            // Locale-neutral circle glyphs: ● (U+25CF) = black, ○ (U+25CB) = white.
+            XCTAssertTrue(layout.trailingSubcaption?.contains("●2") == true)
+            XCTAssertTrue(layout.trailingSubcaption?.contains("○1") == true)
         }
     }
 

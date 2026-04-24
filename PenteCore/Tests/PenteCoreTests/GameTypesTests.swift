@@ -48,6 +48,29 @@ final class GameTypesTests: XCTestCase {
         XCTAssertEqual(WinMethod.fiveCaptures.rawValue, "fiveCaptures")
     }
 
+    // MARK: - Localization key contract
+    //
+    // These keys must match entries in Localizable.xcstrings exactly.
+    // If a key changes, the UI silently falls through to the raw key string.
+    // Wire format (rawValue) must stay decoupled from display keys.
+
+    func testPlayerDisplayNameKeysAreStable() {
+        XCTAssertEqual(Player.black.displayNameKey, "player.black")
+        XCTAssertEqual(Player.white.displayNameKey, "player.white")
+    }
+
+    func testWinMethodBannerKeysAreStable() {
+        XCTAssertEqual(WinMethod.fiveInARow.bannerKey, "win.method.fiveInARow")
+        XCTAssertEqual(WinMethod.fiveCaptures.bannerKey, "win.method.fiveCaptures")
+    }
+
+    func testPlayerDisplayKeysAreNotWireFormat() {
+        // Regression guard: displayNameKey must never equal rawValue.
+        // If it did, localizing would break URL-encoded game state transport.
+        XCTAssertNotEqual(Player.black.displayNameKey, Player.black.rawValue)
+        XCTAssertNotEqual(Player.white.displayNameKey, Player.white.rawValue)
+    }
+
     // MARK: - GameState Tests
 
     func testGameStateEquality() {

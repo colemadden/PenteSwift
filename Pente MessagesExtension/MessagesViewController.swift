@@ -9,6 +9,12 @@ class MessagesViewController: MSMessagesAppViewController {
     let gameModel = PenteGameModel()
     private var currentSession: MSSession?
 
+    /// Bundle that owns Localizable.xcstrings. In production this equals Bundle.main
+    /// (the extension bundle), but in XCTest Bundle.main is the test runner, not the
+    /// bundle containing the catalog. Looking up the bundle by this class forces the
+    /// right one in both contexts.
+    private static let localizationBundle = Bundle(for: MessagesViewController.self)
+
     override func viewDidLoad() {
         super.viewDidLoad()
         setupGameView()
@@ -159,20 +165,37 @@ class MessagesViewController: MSMessagesAppViewController {
             layout.image = dynamicBoardImage
         }
 
-        layout.caption = "Pente"
+        layout.caption = String(localized: "layout.caption", bundle: Self.localizationBundle)
 
-        // Create a summary based on game state
+        // Create a summary based on game state.
+        // NOTE: MSMessageTemplateLayout strings travel with the MSMessage itself
+        // (the receiver does not regenerate them), so this renders in the sender's
+        // locale for every recipient. The trailing subcaption uses locale-neutral
+        // circle glyphs to avoid that asymmetry.
         switch gameModel.gameState {
         case .playing:
-            let moveCount = gameModel.moveHistory.count
-            layout.subcaption = "\(gameModel.currentPlayer.rawValue)'s turn (Move \(moveCount + 1))"
+            let moveNumber = gameModel.moveHistory.count + 1
+            let formatKey: String.LocalizationValue = gameModel.currentPlayer == .black
+                ? "layout.subcaption.turn.black"
+                : "layout.subcaption.turn.white"
+            // Catalog value is a %lld format string. Resolve key, then substitute arg.
+            let format = String(localized: formatKey, bundle: Self.localizationBundle)
+            layout.subcaption = String(format: format, moveNumber)
         case .won(let winner, let method):
-            layout.subcaption = "\(winner.rawValue) wins by \(method == .fiveInARow ? "five in a row" : "captures")!"
+            let key: String.LocalizationValue
+            switch (winner, method) {
+            case (.black, .fiveInARow): key = "layout.subcaption.win.black.fiveInARow"
+            case (.white, .fiveInARow): key = "layout.subcaption.win.white.fiveInARow"
+            case (.black, .fiveCaptures): key = "layout.subcaption.win.black.fiveCaptures"
+            case (.white, .fiveCaptures): key = "layout.subcaption.win.white.fiveCaptures"
+            }
+            layout.subcaption = String(localized: key, bundle: Self.localizationBundle)
         }
 
-        // Add capture info if any
+        // Locale-neutral trailing subcaption using circle glyphs (●=black, ○=white).
+        // Not localized — identical in every language, safe to transmit in MSMessage.
         if gameModel.capturedCount[.black, default: 0] > 0 || gameModel.capturedCount[.white, default: 0] > 0 {
-            layout.trailingSubcaption = "B:\(gameModel.capturedCount[.black, default: 0]) W:\(gameModel.capturedCount[.white, default: 0])"
+            layout.trailingSubcaption = "●\(gameModel.capturedCount[.black, default: 0]) ○\(gameModel.capturedCount[.white, default: 0])"
         }
 
         message.layout = layout
