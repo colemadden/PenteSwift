@@ -1074,6 +1074,26 @@ final class PenteGameModelTests: XCTestCase {
         XCTAssertEqual(anim.player, .black)
     }
 
+    // MARK: - loadFromURL result reporting (ADR-0046)
+
+    func testLoadFromURLReturnsFalseAndLeavesModelUntouchedOnBadURL() {
+        gameModel.makeMove(row: 9, col: 9)
+        gameModel.confirmMove()
+
+        let ok = gameModel.loadFromURL(URL(string: "pente://game")!)
+
+        XCTAssertFalse(ok)
+        // Model state untouched by the failed decode.
+        XCTAssertEqual(gameModel.moveHistory.count, 1)
+        XCTAssertEqual(gameModel.board[9][9], .black)
+    }
+
+    func testLoadFromURLReturnsTrueOnValidURL() {
+        let ok = gameModel.loadFromURL(
+            URL(string: "pente://game?moves=B9,9;&current=White&capB=0&capW=0&state=playing")!)
+        XCTAssertTrue(ok)
+    }
+
     // MARK: - loadFromURL discards tentative state (ADR-0046)
 
     func testLoadFromURLDiscardsPendingTentativeState() {

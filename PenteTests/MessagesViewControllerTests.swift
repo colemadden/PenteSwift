@@ -497,6 +497,25 @@ final class MessagesViewControllerTests: XCTestCase {
             "Reply must not leak the previously displayed game's session")
     }
 
+    /// ADR-0046: a message whose URL fails to decode must NOT have its session
+    /// adopted — old state + new session would misroute the next reply.
+    func testDidReceiveWithUndecodableURLDoesNotAdoptSession() {
+        let sessionA = MSSession()
+        let messageA = MockMSMessageWithSession(session: sessionA)
+        messageA.mockURL = URL(string: "pente://game?moves=B9,9;&current=White&capB=0&capW=0&state=playing")
+        mockConversation.mockSelectedMessage = messageA
+        viewController.willBecomeActive(with: mockConversation)
+
+        let sessionB = MSSession()
+        let messageB = MockMSMessageWithSession(session: sessionB)
+        messageB.mockURL = URL(string: "pente://game") // no query items -> decode fails
+        viewController.didReceive(messageB, conversation: mockConversation)
+
+        let reply = viewController.createMessage()
+        XCTAssertTrue(reply.session === sessionA,
+            "Undecodable didReceive must keep the prior game's session")
+    }
+
     // MARK: - Memory Management Tests
 
     func testDelegateRetainCycle() {

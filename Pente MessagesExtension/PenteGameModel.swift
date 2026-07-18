@@ -253,8 +253,12 @@ class PenteGameModel: ObservableObject {
         )
     }
     
-    func loadFromURL(_ url: URL) {
-        guard let decoded = GameStateDecoder.decodeFromURL(url) else { return }
+    /// Returns false when the URL doesn't decode — the model is left untouched,
+    /// and callers must NOT act as if the new state loaded (e.g. adopting the
+    /// message's session would pair old game state with a new session, ADR-0046).
+    @discardableResult
+    func loadFromURL(_ url: URL) -> Bool {
+        guard let decoded = GameStateDecoder.decodeFromURL(url) else { return false }
 
         // ADR-0046: discard any tentative state belonging to the PRE-load
         // board. A pending stone surviving a reload could be confirmed into
@@ -321,6 +325,8 @@ class PenteGameModel: ObservableObject {
         // pre-load board. Arrival triggers (opponentMoveArrived /
         // animateLastMoveArrivalIfFromOpponent) run after this and re-set it.
         animatingStone = nil
+
+        return true
     }
     
     func resetGame() {

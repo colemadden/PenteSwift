@@ -94,16 +94,21 @@ class MessagesViewController: MSMessagesAppViewController {
         // tests can assert on state immediately after this call returns.
         let work: () -> Void = { [weak self] in
             guard let self = self else { return }
-            // Load game state from selected message
+            // Load game state from selected message. Session adoption is gated
+            // on decode success (ADR-0046) — same reasoning as didReceive: a
+            // failed decode must not pair the prior game's state with this
+            // bubble's session. On failure the model and session keep their
+            // previous values.
             if let message = conversation.selectedMessage,
                let url = message.url {
-                self.gameModel.loadFromURL(url)
-                self.assignPlayerRole(from: conversation)
-                // Reuse the existing session so all messages update together
-                self.currentSession = message.session
-                // ADR-0033: open-from-thumbnail replay — scale-in the opponent's
-                // just-arrived move so it's obvious which stone is new.
-                self.gameModel.animateLastMoveArrivalIfFromOpponent()
+                if self.gameModel.loadFromURL(url) {
+                    self.assignPlayerRole(from: conversation)
+                    // Reuse the existing session so all messages update together
+                    self.currentSession = message.session
+                    // ADR-0033: open-from-thumbnail replay — scale-in the
+                    // opponent's just-arrived move so it's obvious which is new.
+                    self.gameModel.animateLastMoveArrivalIfFromOpponent()
+                }
             } else {
                 // No existing game, start a new one - this player becomes black
                 let localParticipantID = conversation.localParticipantIdentifier.uuidString
@@ -169,12 +174,12 @@ class MessagesViewController: MSMessagesAppViewController {
         let work: () -> Void = { [weak self] in
             guard let self = self, let url = message.url else { return }
             let priorMoveCount = self.gameModel.moveHistory.count
-            self.gameModel.loadFromURL(url)
+            // ADR-0046: only on a successful load do we adopt the incoming
+            // message's session. Adopting it after a failed decode would pair
+            // the OLD game's state with the NEW message's session — a reply
+            // would then update the wrong transcript bubble.
+            guard self.gameModel.loadFromURL(url) else { return }
             self.assignPlayerRole(from: conversation)
-            // ADR-0046: adopt the incoming message's session. Without this, a
-            // reply made after didReceive loads game B would post under game
-            // A's session and update the wrong transcript bubble when two
-            // Pente games share one chat.
             self.currentSession = message.session
             // ADR-0038: opponent-move-arrival haptic. Only fire when the loaded
             // state actually advanced — guards against redundant didReceive
