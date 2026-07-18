@@ -18,9 +18,20 @@ What actually went out: **Simplified Chinese localization** (#2 below) and **Las
 - **China relevance**: Highest possible
 - **Status**: Shipped. In-app strings via `Localizable.xcstrings`; native-speaker review completed for v1.3 strings and the ASC listing copy. NOTE (2026-07-18): per ADR-0045, future zh copy is QA'd by multi-LLM consensus, not native review.
 - **Remaining work**: none — (a) native review done (v1.3-era), (b) on-device check done, (c) ASC listing localization applied with the v1.4 submission (2026-07-18).
-- **Bonus TODO**: First-launch rules overlay explaining captures/five-in-a-row (Pente is less known than Gomoku in China)
+- ~~Bonus TODO: First-launch rules overlay~~ ✅ DONE — shipped in v1.4 as item 7 (ADR-0043)
 
-#### 2a. ASC Listing Localization for zh-Hans (Separate Agent Session — Do AFTER TestFlight verification)
+#### 2a. ASC Listing Localization for zh-Hans ✅ DONE (2026-07-18, applied with the v1.4 submission)
+
+> **Completion note**: subtitle 不止五子棋，更有夹吃, description, keywords, and
+> promotional text applied verbatim from `zh-hans-asc-review.txt` via the ASC
+> API; zh whatsNew drafted fresh for v1.4 and Codex-consensus-checked (ADR-0045).
+> Only skipped step: localized zh screenshots (step 4 below) — the store falls
+> back to the en-US screenshots; add zh captures later if conversion warrants.
+> The instructions below are retained as historical reference; "decide/tune with
+> native reviewer" steps are superseded by ADR-0045.
+
+<details><summary>Original task plan (historical)</summary>
+
 
 **Context handoff**: The in-app strings for Simplified Chinese are already done and tested. This task is ONLY about the App Store listing itself (what Chinese users see on the App Store before installing). It is deliberately deferred to a separate session because it is administrative / data-entry work, not code, and should happen only once the build is verified on-device.
 
@@ -67,6 +78,8 @@ What actually went out: **Simplified Chinese localization** (#2 below) and **Las
 - Visual check in App Store Connect web UI before submission
 
 **Files**: None in this repo. All work is via ASC API. No code changes needed.
+
+</details>
 
 ### 4. Last Move Indicator ✅ DONE (shipped in v1.3, 2026-04-24)
 - **Impact**: High — on a 19x19 board, finding the opponent's last move is frustrating
