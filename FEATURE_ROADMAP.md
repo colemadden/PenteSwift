@@ -13,11 +13,11 @@
 
 What actually went out: **Simplified Chinese localization** (#2 below) and **Last Move Indicator** (#4 below). Pinch-to-zoom and Sound/Haptics did NOT ship in 1.3 — they have been moved to v1.4 as items 4a and 4b.
 
-### 2. Chinese (Simplified) Localization — In-app ✅ DONE (pending native review + ASC listing)
+### 2. Chinese (Simplified) Localization — In-app ✅ FULLY DONE (v1.3 in-app; ASC listing applied with v1.4 on 2026-07-18)
 - **Impact**: Critical — 82% of users read a foreign-language UI
 - **China relevance**: Highest possible
-- **Status**: In-app strings implemented via `Localizable.xcstrings` (22 keys in the extension, 2 in the host app). Full test coverage (258/258 passing). Awaiting native-speaker review (`zh-hans-review.txt` at repo root) and on-device verification before release.
-- **Remaining work**: (a) native-speaker review pass on translations, (b) on-device sanity check in Simplified Chinese, (c) **App Store Connect listing localization (separate agent session below)**.
+- **Status**: Shipped. In-app strings via `Localizable.xcstrings`; native-speaker review completed for v1.3 strings and the ASC listing copy. NOTE (2026-07-18): per ADR-0045, future zh copy is QA'd by multi-LLM consensus, not native review.
+- **Remaining work**: none — (a) native review done (v1.3-era), (b) on-device check done, (c) ASC listing localization applied with the v1.4 submission (2026-07-18).
 - **Bonus TODO**: First-launch rules overlay explaining captures/five-in-a-row (Pente is less known than Gomoku in China)
 
 #### 2a. ASC Listing Localization for zh-Hans (Separate Agent Session — Do AFTER TestFlight verification)
@@ -112,7 +112,7 @@ What actually went out: **Simplified Chinese localization** (#2 below) and **Las
 - **Files**: `PenteCore/Sources/PenteCore/WinDetector.swift`, `PenteGameModel.swift`, `PenteGameView.swift` Canvas drawing block. Not encoded in URL — recomputable on resume.
 - **Tests**: `WinDetector` tests asserting returned coordinates for horizontal / vertical / both diagonals.
 
-### 7. First-Launch Rules / Tutorial Screen ✅ DONE (2026-07-16, ADR-0043; zh strings need native review)
+### 7. First-Launch Rules / Tutorial Screen ✅ DONE (2026-07-16, ADR-0043; zh strings cleared via ADR-0045 LLM consensus 2026-07-18 — one wording improvement rides v1.4.1)
 - **Impact**: High — Pente's capture rule is unique and unexpected. Chinese users coming from Gomoku (五子棋) won't know about it. The 1-star Chinese review ("帮对手下棋，谁懂啊？") and Mehera's capture confusion both stem from players not understanding the rules.
 - **China relevance**: Highest — 86% of users likely assume this is Gomoku.
 - **Effort**: Low-Medium

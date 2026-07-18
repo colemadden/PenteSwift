@@ -1,6 +1,6 @@
 # 0043 — First-launch rules overlay, one card, UserDefaults flag
 
-- **Status**: Accepted
+- **Status**: Accepted (native-review consequence superseded by ADR-0045 — zh QA is now multi-LLM consensus)
 - **Date**: 2026-07-16
 - **Version**: v1.4
 - **Source**: FEATURE_ROADMAP §v1.4 item 7; 1-star zh review ("帮对手下棋，谁懂啊？"); tester capture confusion (Mehera)
