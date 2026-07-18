@@ -6,7 +6,8 @@ public struct GameStateEncoder {
         currentPlayer: Player,
         capturedCount: [Player: Int],
         gameState: GameState,
-        blackPlayerID: String? = nil
+        blackPlayerID: String? = nil,
+        gameID: UUID? = nil
     ) -> [URLQueryItem] {
         var items: [URLQueryItem] = []
 
@@ -42,6 +43,12 @@ public struct GameStateEncoder {
             items.append(URLQueryItem(name: "blackID", value: blackPlayerID))
         }
 
+        // Stable per-game identity (ADR-0037), used by the iOS extension's
+        // failed-send retry guard to confirm we're back in the same game.
+        if let gameID = gameID {
+            items.append(URLQueryItem(name: "gid", value: gameID.uuidString))
+        }
+
         return items
     }
 }
@@ -53,6 +60,12 @@ public struct DecodedGameState {
     public var gameState: GameState
     public var moveHistory: [(row: Int, col: Int, player: Player)]
     public var blackPlayerID: String?
+    public var gameID: UUID?
+    /// Positions captured by the final move in the history (ADR-0042). Derived
+    /// from the replay — not wire-encoded — so it is always consistent with the
+    /// board and works for URLs produced by any client version. Lets the UI
+    /// mark "these stones were just removed" when a game is resumed.
+    public var lastCaptures: [(row: Int, col: Int)] = []
 
     public init(
         board: GameBoard,
@@ -60,7 +73,8 @@ public struct DecodedGameState {
         capturedCount: [Player: Int],
         gameState: GameState,
         moveHistory: [(row: Int, col: Int, player: Player)],
-        blackPlayerID: String?
+        blackPlayerID: String?,
+        gameID: UUID? = nil
     ) {
         self.board = board
         self.currentPlayer = currentPlayer
@@ -68,6 +82,7 @@ public struct DecodedGameState {
         self.gameState = gameState
         self.moveHistory = moveHistory
         self.blackPlayerID = blackPlayerID
+        self.gameID = gameID
     }
 }
 
@@ -113,6 +128,11 @@ public struct GameStateDecoder {
                 state.capturedCount[player, default: 0] += captures.count / 2
 
                 state.moveHistory.append((row: row, col: col, player: player))
+
+                // Overwritten every iteration — ends holding the FINAL move's
+                // captures, which is exactly "what just got taken" on resume
+                // (ADR-0042).
+                state.lastCaptures = captures
             }
         }
 
@@ -134,6 +154,12 @@ public struct GameStateDecoder {
 
         // Set black player identifier
         state.blackPlayerID = queryItems.first(where: { $0.name == "blackID" })?.value
+
+        // Stable per-game identity (ADR-0037). v1.3-era games will not have this
+        // field; UUID(uuidString:) returns nil on absence or malformed value.
+        if let gidString = queryItems.first(where: { $0.name == "gid" })?.value {
+            state.gameID = UUID(uuidString: gidString)
+        }
 
         return state
     }

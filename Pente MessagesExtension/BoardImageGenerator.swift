@@ -6,6 +6,7 @@ struct BoardImageGenerator {
     static func generateBoardImage(
         board: [[Player?]],
         moveHistory: [(row: Int, col: Int, player: Player)],
+        winningLine: [Position]? = nil,
         size: CGSize = CGSize(width: 300, height: 300),
         colorScheme: UIUserInterfaceStyle
     ) -> UIImage? {
@@ -106,14 +107,36 @@ struct BoardImageGenerator {
                 }
             }
             
-            // Last move indicator (solid green ring — matches live view's committed
-            // ring. 2pt lineWidth to survive iMessage bubble compression; uses
-            // UIColor.systemGreen so it resolves to the same adaptive green as
-            // Color(.systemGreen) in PenteGameView.
-            if let lastMove = moveHistory.last,
-               lastMove.row >= 0, lastMove.row < GameBoard.size,
-               lastMove.col >= 0, lastMove.col < GameBoard.size,
-               board[lastMove.row][lastMove.col] != nil {
+            // Gold winning-line ring (ADR-0019, mirroring PenteGameView). When the
+            // game has been won by five-in-a-row, draw gold rings on the winning
+            // 5 stones and SKIP the green last-move ring — otherwise the last
+            // move would double-ring (gold + green) when it's part of the line.
+            if let winningLine = winningLine, !winningLine.isEmpty {
+                let goldColor = UIColor(red: 1.0, green: 0.84, blue: 0.0, alpha: 1.0)
+                ctx.setStrokeColor(goldColor.cgColor)
+                ctx.setLineWidth(2.5)
+                for pos in winningLine {
+                    guard pos.row >= 0, pos.row < GameBoard.size,
+                          pos.col >= 0, pos.col < GameBoard.size else { continue }
+                    let center = CGPoint(
+                        x: margin + CGFloat(pos.col) * cellSize,
+                        y: margin + CGFloat(pos.row) * cellSize
+                    )
+                    ctx.strokeEllipse(in: CGRect(
+                        x: center.x - stoneRadius,
+                        y: center.y - stoneRadius,
+                        width: stoneRadius * 2,
+                        height: stoneRadius * 2
+                    ))
+                }
+            } else if let lastMove = moveHistory.last,
+                      lastMove.row >= 0, lastMove.row < GameBoard.size,
+                      lastMove.col >= 0, lastMove.col < GameBoard.size,
+                      board[lastMove.row][lastMove.col] != nil {
+                // Last move indicator (solid green ring — matches live view's
+                // committed ring. 2pt lineWidth to survive iMessage bubble
+                // compression; uses UIColor.systemGreen so it resolves to the
+                // same adaptive green as Color(.systemGreen) in PenteGameView.
                 let center = CGPoint(
                     x: margin + CGFloat(lastMove.col) * cellSize,
                     y: margin + CGFloat(lastMove.row) * cellSize

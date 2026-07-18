@@ -25,11 +25,11 @@ final class WinDetectorTests: XCTestCase {
         
         // Test win detection for each stone in the line
         for col in 5...9 {
-            XCTAssertTrue(WinDetector.checkFiveInARow(on: gameBoard, at: 10, col: col, for: .black))
+            XCTAssertNotNil(WinDetector.checkFiveInARow(on: gameBoard, at: 10, col: col, for: .black))
         }
         
         // Test that white doesn't win
-        XCTAssertFalse(WinDetector.checkFiveInARow(on: gameBoard, at: 10, col: 5, for: .white))
+        XCTAssertNil(WinDetector.checkFiveInARow(on: gameBoard, at: 10, col: 5, for: .white))
     }
     
     func testVerticalFiveInARow() {
@@ -40,11 +40,11 @@ final class WinDetectorTests: XCTestCase {
         
         // Test win detection for each stone in the line
         for row in 5...9 {
-            XCTAssertTrue(WinDetector.checkFiveInARow(on: gameBoard, at: row, col: 10, for: .white))
+            XCTAssertNotNil(WinDetector.checkFiveInARow(on: gameBoard, at: row, col: 10, for: .white))
         }
         
         // Test that black doesn't win
-        XCTAssertFalse(WinDetector.checkFiveInARow(on: gameBoard, at: 5, col: 10, for: .black))
+        XCTAssertNil(WinDetector.checkFiveInARow(on: gameBoard, at: 5, col: 10, for: .black))
     }
     
     func testDiagonalFiveInARowDownRight() {
@@ -55,7 +55,7 @@ final class WinDetectorTests: XCTestCase {
         
         // Test win detection for each stone in the line
         for i in 0...4 {
-            XCTAssertTrue(WinDetector.checkFiveInARow(on: gameBoard, at: 5 + i, col: 5 + i, for: .black))
+            XCTAssertNotNil(WinDetector.checkFiveInARow(on: gameBoard, at: 5 + i, col: 5 + i, for: .black))
         }
     }
     
@@ -67,7 +67,7 @@ final class WinDetectorTests: XCTestCase {
         
         // Test win detection for each stone in the line
         for i in 0...4 {
-            XCTAssertTrue(WinDetector.checkFiveInARow(on: gameBoard, at: 5 + i, col: 9 - i, for: .white))
+            XCTAssertNotNil(WinDetector.checkFiveInARow(on: gameBoard, at: 5 + i, col: 9 - i, for: .white))
         }
     }
     
@@ -81,7 +81,7 @@ final class WinDetectorTests: XCTestCase {
         
         // All positions should detect the win
         for col in 5...10 {
-            XCTAssertTrue(WinDetector.checkFiveInARow(on: gameBoard, at: 10, col: col, for: .black))
+            XCTAssertNotNil(WinDetector.checkFiveInARow(on: gameBoard, at: 10, col: col, for: .black))
         }
     }
     
@@ -93,7 +93,7 @@ final class WinDetectorTests: XCTestCase {
         
         // All positions should detect the win
         for row in 3...9 {
-            XCTAssertTrue(WinDetector.checkFiveInARow(on: gameBoard, at: row, col: 10, for: .white))
+            XCTAssertNotNil(WinDetector.checkFiveInARow(on: gameBoard, at: row, col: 10, for: .white))
         }
     }
     
@@ -107,7 +107,7 @@ final class WinDetectorTests: XCTestCase {
         
         // Should not detect a win
         for col in 5...8 {
-            XCTAssertFalse(WinDetector.checkFiveInARow(on: gameBoard, at: 10, col: col, for: .black))
+            XCTAssertNil(WinDetector.checkFiveInARow(on: gameBoard, at: 10, col: col, for: .black))
         }
     }
     
@@ -119,7 +119,7 @@ final class WinDetectorTests: XCTestCase {
         
         // Should not detect a win
         for i in 0...2 {
-            XCTAssertFalse(WinDetector.checkFiveInARow(on: gameBoard, at: 5 + i, col: 5 + i, for: .white))
+            XCTAssertNil(WinDetector.checkFiveInARow(on: gameBoard, at: 5 + i, col: 5 + i, for: .white))
         }
     }
     
@@ -135,11 +135,11 @@ final class WinDetectorTests: XCTestCase {
         gameBoard.placeStone(.black, at: 10, col: 10)
         
         // Should not detect a win due to the gap
-        XCTAssertFalse(WinDetector.checkFiveInARow(on: gameBoard, at: 10, col: 5, for: .black))
-        XCTAssertFalse(WinDetector.checkFiveInARow(on: gameBoard, at: 10, col: 6, for: .black))
-        XCTAssertFalse(WinDetector.checkFiveInARow(on: gameBoard, at: 10, col: 8, for: .black))
-        XCTAssertFalse(WinDetector.checkFiveInARow(on: gameBoard, at: 10, col: 9, for: .black))
-        XCTAssertFalse(WinDetector.checkFiveInARow(on: gameBoard, at: 10, col: 10, for: .black))
+        XCTAssertNil(WinDetector.checkFiveInARow(on: gameBoard, at: 10, col: 5, for: .black))
+        XCTAssertNil(WinDetector.checkFiveInARow(on: gameBoard, at: 10, col: 6, for: .black))
+        XCTAssertNil(WinDetector.checkFiveInARow(on: gameBoard, at: 10, col: 8, for: .black))
+        XCTAssertNil(WinDetector.checkFiveInARow(on: gameBoard, at: 10, col: 9, for: .black))
+        XCTAssertNil(WinDetector.checkFiveInARow(on: gameBoard, at: 10, col: 10, for: .black))
     }
     
     func testOpponentStoneBreaksLine() {
@@ -152,9 +152,9 @@ final class WinDetectorTests: XCTestCase {
         gameBoard.placeStone(.black, at: 10, col: 10)
         
         // Should not detect a win due to opponent stone
-        XCTAssertFalse(WinDetector.checkFiveInARow(on: gameBoard, at: 10, col: 5, for: .black))
-        XCTAssertFalse(WinDetector.checkFiveInARow(on: gameBoard, at: 10, col: 6, for: .black))
-        XCTAssertFalse(WinDetector.checkFiveInARow(on: gameBoard, at: 10, col: 8, for: .black))
+        XCTAssertNil(WinDetector.checkFiveInARow(on: gameBoard, at: 10, col: 5, for: .black))
+        XCTAssertNil(WinDetector.checkFiveInARow(on: gameBoard, at: 10, col: 6, for: .black))
+        XCTAssertNil(WinDetector.checkFiveInARow(on: gameBoard, at: 10, col: 8, for: .black))
     }
     
     // MARK: - Edge and Corner Tests
@@ -167,7 +167,7 @@ final class WinDetectorTests: XCTestCase {
         
         // Should detect win
         for col in 0...4 {
-            XCTAssertTrue(WinDetector.checkFiveInARow(on: gameBoard, at: 10, col: col, for: .black))
+            XCTAssertNotNil(WinDetector.checkFiveInARow(on: gameBoard, at: 10, col: col, for: .black))
         }
     }
     
@@ -179,7 +179,7 @@ final class WinDetectorTests: XCTestCase {
         
         // Should detect win
         for col in 14...18 {
-            XCTAssertTrue(WinDetector.checkFiveInARow(on: gameBoard, at: 10, col: col, for: .white))
+            XCTAssertNotNil(WinDetector.checkFiveInARow(on: gameBoard, at: 10, col: col, for: .white))
         }
     }
     
@@ -191,7 +191,7 @@ final class WinDetectorTests: XCTestCase {
         
         // Should detect win
         for row in 0...4 {
-            XCTAssertTrue(WinDetector.checkFiveInARow(on: gameBoard, at: row, col: 10, for: .black))
+            XCTAssertNotNil(WinDetector.checkFiveInARow(on: gameBoard, at: row, col: 10, for: .black))
         }
     }
     
@@ -203,7 +203,7 @@ final class WinDetectorTests: XCTestCase {
         
         // Should detect win
         for row in 14...18 {
-            XCTAssertTrue(WinDetector.checkFiveInARow(on: gameBoard, at: row, col: 10, for: .white))
+            XCTAssertNotNil(WinDetector.checkFiveInARow(on: gameBoard, at: row, col: 10, for: .white))
         }
     }
     
@@ -215,7 +215,7 @@ final class WinDetectorTests: XCTestCase {
         
         // Should detect win
         for i in 0...4 {
-            XCTAssertTrue(WinDetector.checkFiveInARow(on: gameBoard, at: i, col: i, for: .black))
+            XCTAssertNotNil(WinDetector.checkFiveInARow(on: gameBoard, at: i, col: i, for: .black))
         }
     }
     
@@ -227,7 +227,7 @@ final class WinDetectorTests: XCTestCase {
         
         // Should detect win
         for i in 0...4 {
-            XCTAssertTrue(WinDetector.checkFiveInARow(on: gameBoard, at: 14 + i, col: 14 + i, for: .white))
+            XCTAssertNotNil(WinDetector.checkFiveInARow(on: gameBoard, at: 14 + i, col: 14 + i, for: .white))
         }
     }
     
@@ -247,7 +247,7 @@ final class WinDetectorTests: XCTestCase {
         }
         
         // Should still detect the win despite other stones
-        XCTAssertTrue(WinDetector.checkFiveInARow(on: gameBoard, at: 10, col: 12, for: .black))
+        XCTAssertNotNil(WinDetector.checkFiveInARow(on: gameBoard, at: 10, col: 12, for: .black))
     }
     
     func testMultiplePotentialWins() {
@@ -264,8 +264,8 @@ final class WinDetectorTests: XCTestCase {
         }
         
         // Should detect win in the complete line only
-        XCTAssertFalse(WinDetector.checkFiveInARow(on: gameBoard, at: 5, col: 7, for: .black))
-        XCTAssertTrue(WinDetector.checkFiveInARow(on: gameBoard, at: 12, col: 10, for: .black))
+        XCTAssertNil(WinDetector.checkFiveInARow(on: gameBoard, at: 5, col: 7, for: .black))
+        XCTAssertNotNil(WinDetector.checkFiveInARow(on: gameBoard, at: 12, col: 10, for: .black))
     }
     
     // MARK: - Capture Win Tests
@@ -290,13 +290,13 @@ final class WinDetectorTests: XCTestCase {
     
     func testEmptyBoard() {
         // No win should be detected on empty board
-        XCTAssertFalse(WinDetector.checkFiveInARow(on: gameBoard, at: 9, col: 9, for: .black))
-        XCTAssertFalse(WinDetector.checkFiveInARow(on: gameBoard, at: 9, col: 9, for: .white))
+        XCTAssertNil(WinDetector.checkFiveInARow(on: gameBoard, at: 9, col: 9, for: .black))
+        XCTAssertNil(WinDetector.checkFiveInARow(on: gameBoard, at: 9, col: 9, for: .white))
     }
     
     func testSingleStone() {
         gameBoard.placeStone(.black, at: 9, col: 9)
-        XCTAssertFalse(WinDetector.checkFiveInARow(on: gameBoard, at: 9, col: 9, for: .black))
+        XCTAssertNil(WinDetector.checkFiveInARow(on: gameBoard, at: 9, col: 9, for: .black))
     }
     
     func testInvalidPosition() {
@@ -306,10 +306,10 @@ final class WinDetectorTests: XCTestCase {
         }
         
         // Test with invalid position - should not crash
-        XCTAssertFalse(WinDetector.checkFiveInARow(on: gameBoard, at: -1, col: 0, for: .black))
-        XCTAssertFalse(WinDetector.checkFiveInARow(on: gameBoard, at: 19, col: 0, for: .black))
-        XCTAssertFalse(WinDetector.checkFiveInARow(on: gameBoard, at: 0, col: -1, for: .black))
-        XCTAssertFalse(WinDetector.checkFiveInARow(on: gameBoard, at: 0, col: 19, for: .black))
+        XCTAssertNil(WinDetector.checkFiveInARow(on: gameBoard, at: -1, col: 0, for: .black))
+        XCTAssertNil(WinDetector.checkFiveInARow(on: gameBoard, at: 19, col: 0, for: .black))
+        XCTAssertNil(WinDetector.checkFiveInARow(on: gameBoard, at: 0, col: -1, for: .black))
+        XCTAssertNil(WinDetector.checkFiveInARow(on: gameBoard, at: 0, col: 19, for: .black))
     }
     
     // MARK: - Specific Game Rule Tests
@@ -323,13 +323,13 @@ final class WinDetectorTests: XCTestCase {
             gameBoard.placeStone(.black, at: 10, col: col)
         }
         
-        XCTAssertTrue(WinDetector.checkFiveInARow(on: gameBoard, at: 10, col: 9, for: .black))
+        XCTAssertNotNil(WinDetector.checkFiveInARow(on: gameBoard, at: 10, col: 9, for: .black))
         
         // Add a 6th stone
         gameBoard.placeStone(.black, at: 10, col: 12)
         
         // Should still win (6 in a row is also a win according to rules)
-        XCTAssertTrue(WinDetector.checkFiveInARow(on: gameBoard, at: 10, col: 9, for: .black))
+        XCTAssertNotNil(WinDetector.checkFiveInARow(on: gameBoard, at: 10, col: 9, for: .black))
     }
     
     func testWinFromAnyStoneInLine() {
@@ -339,11 +339,11 @@ final class WinDetectorTests: XCTestCase {
         }
         
         // Test detection from each stone in the line
-        XCTAssertTrue(WinDetector.checkFiveInARow(on: gameBoard, at: 10, col: 5, for: .black), "First stone should detect win")
-        XCTAssertTrue(WinDetector.checkFiveInARow(on: gameBoard, at: 10, col: 6, for: .black), "Second stone should detect win")
-        XCTAssertTrue(WinDetector.checkFiveInARow(on: gameBoard, at: 10, col: 7, for: .black), "Middle stone should detect win")
-        XCTAssertTrue(WinDetector.checkFiveInARow(on: gameBoard, at: 10, col: 8, for: .black), "Fourth stone should detect win")
-        XCTAssertTrue(WinDetector.checkFiveInARow(on: gameBoard, at: 10, col: 9, for: .black), "Last stone should detect win")
+        XCTAssertNotNil(WinDetector.checkFiveInARow(on: gameBoard, at: 10, col: 5, for: .black), "First stone should detect win")
+        XCTAssertNotNil(WinDetector.checkFiveInARow(on: gameBoard, at: 10, col: 6, for: .black), "Second stone should detect win")
+        XCTAssertNotNil(WinDetector.checkFiveInARow(on: gameBoard, at: 10, col: 7, for: .black), "Middle stone should detect win")
+        XCTAssertNotNil(WinDetector.checkFiveInARow(on: gameBoard, at: 10, col: 8, for: .black), "Fourth stone should detect win")
+        XCTAssertNotNil(WinDetector.checkFiveInARow(on: gameBoard, at: 10, col: 9, for: .black), "Last stone should detect win")
     }
     
     // MARK: - Performance Tests
@@ -363,6 +363,6 @@ final class WinDetectorTests: XCTestCase {
         }
         
         // Should still detect win efficiently
-        XCTAssertTrue(WinDetector.checkFiveInARow(on: gameBoard, at: 18, col: 7, for: .black))
+        XCTAssertNotNil(WinDetector.checkFiveInARow(on: gameBoard, at: 18, col: 7, for: .black))
     }
 }

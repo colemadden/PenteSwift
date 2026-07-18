@@ -91,6 +91,45 @@ final class GameStateEncoderTests: XCTestCase {
         XCTAssertNil(GameStateDecoder.decodeFromURL(url))
     }
 
+    func testGameIDRoundTrip() {
+        let id = UUID()
+        let queryItems = GameStateEncoder.encodeToQueryItems(
+            moveHistory: [],
+            currentPlayer: .black,
+            capturedCount: [.black: 0, .white: 0],
+            gameState: .playing,
+            gameID: id
+        )
+
+        var components = URLComponents()
+        components.scheme = "pente"
+        components.host = "game"
+        components.queryItems = queryItems
+
+        guard let decoded = GameStateDecoder.decodeFromURL(components.url!) else {
+            XCTFail("Should decode"); return
+        }
+
+        XCTAssertEqual(decoded.gameID, id)
+    }
+
+    func testGameIDAbsentInLegacyURL() {
+        // v1.3-era URL: no gid query item.
+        let url = URL(string: "pente://game?moves=B9,9;&current=White&capB=0&capW=0&state=playing")!
+        guard let decoded = GameStateDecoder.decodeFromURL(url) else {
+            XCTFail("Should decode"); return
+        }
+        XCTAssertNil(decoded.gameID)
+    }
+
+    func testGameIDMalformedDecodesAsNil() {
+        let url = URL(string: "pente://game?moves=B9,9;&current=White&capB=0&capW=0&state=playing&gid=not-a-uuid")!
+        guard let decoded = GameStateDecoder.decodeFromURL(url) else {
+            XCTFail("Should decode"); return
+        }
+        XCTAssertNil(decoded.gameID)
+    }
+
     func testBlackPlayerIDRoundTrip() {
         let queryItems = GameStateEncoder.encodeToQueryItems(
             moveHistory: [],
@@ -110,6 +149,41 @@ final class GameStateEncoderTests: XCTestCase {
         }
 
         XCTAssertEqual(decoded.blackPlayerID, "test-id-123")
+    }
+
+    // MARK: - Last-captures on resume (ADR-0042)
+
+    func testDecodeLastCapturesOnFinalMove() {
+        // B5,8 sandwiches W5,6 + W5,7 against B5,5 — the final move captures.
+        let url = URL(string: "pente://game?moves=B5,5;W5,6;W5,7;B5,8;&current=White&capB=0&capW=0&state=playing")!
+
+        guard let decoded = GameStateDecoder.decodeFromURL(url) else {
+            XCTFail("Should decode"); return
+        }
+
+        XCTAssertEqual(decoded.lastCaptures.count, 2)
+        XCTAssertTrue(decoded.lastCaptures.contains { $0.row == 5 && $0.col == 6 })
+        XCTAssertTrue(decoded.lastCaptures.contains { $0.row == 5 && $0.col == 7 })
+    }
+
+    func testDecodeLastCapturesEmptyWhenEarlierMoveCaptured() {
+        // Same capture as above, but a later non-capturing move follows —
+        // lastCaptures must reflect only the FINAL move.
+        let url = URL(string: "pente://game?moves=B5,5;W5,6;W5,7;B5,8;W10,10;&current=Black&capB=0&capW=0&state=playing")!
+
+        guard let decoded = GameStateDecoder.decodeFromURL(url) else {
+            XCTFail("Should decode"); return
+        }
+
+        XCTAssertTrue(decoded.lastCaptures.isEmpty)
+    }
+
+    func testDecodeLastCapturesEmptyWithNoMoves() {
+        let url = URL(string: "pente://game?current=Black&capB=0&capW=0&state=playing")!
+        guard let decoded = GameStateDecoder.decodeFromURL(url) else {
+            XCTFail("Should decode"); return
+        }
+        XCTAssertTrue(decoded.lastCaptures.isEmpty)
     }
 
     // MARK: - Localization-safety invariant

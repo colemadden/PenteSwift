@@ -1,0 +1,74 @@
+=========================================================
+  Pente — App Store Listing: zh-Hans FINAL COPY
+=========================================================
+
+==========================================================
+SECTION 1: APP INFO (appears on all versions)
+==========================================================
+
+1. APP NAME
+   Pente for iMessage
+   (unchanged — keep English brand name)
+
+2. SUBTITLE (30 char max)
+   不止五子棋，更有夹吃
+   "More than Gomoku — with captures"
+   (all 3 LLMs preferred this over the original 带夹吃规则的策略棋;
+    includes high-volume search term 五子棋 for ASO + differentiator)
+
+==========================================================
+SECTION 2: VERSION LOCALIZATION
+==========================================================
+
+3. DESCRIPTION
+
+在 iMessage 中体验 Pente 的乐趣！这款经典策略棋盘游戏让你直接在 iMessage 中与朋友和家人对战。
+
+与五子棋不同，Pente 拥有独特的夹吃规则：
+用你的棋子夹住对手相邻的两颗棋子，即可将其吃掉！
+
+玩法说明：
+• 在棋盘上落子，率先连成五子即可获胜
+• 用两颗棋子夹住对手相邻的一对棋子即可吃掉
+• 连成五子或吃掉对手 5 对（10 颗）棋子均可获胜
+• 规则简单，策略丰富
+
+功能特色：
+• 直接在 iMessage 对话中进行游戏
+• 简洁美观的棋盘界面
+• 自动校验落子合法性
+• 对局状态保存在聊天记录中
+• 支持 iPhone 和 iPad
+
+适合聊天时来一局快棋，也适合展开更深入的策略对决。无需下载额外应用，一切尽在 iMessage！
+
+Pente 融合了井字棋的简洁与围棋的深度，易学难精。
+
+   Changes from initial draft (consensus across Gemini + GPT):
+   - 短信 → iMessage (短信 implies SMS; this is iMessage-specific)
+   - 策略深奥 → 策略丰富 (深奥 sounds academic/intimidating)
+   - Smoother closing line rhythm
+
+4. KEYWORDS (100 char max, comma-separated)
+   五子棋,棋盘游戏,策略,iMessage,对战,双人,夹吃,连珠,Pente,棋,桌游,益智
+   Change: 围棋 → 桌游 (围棋 attracts Go players; 桌游 = "board game" is broader)
+
+5. WHAT'S NEW
+   • 新增简体中文支持——游戏内所有文字已翻译为中文
+   • 新增最近一手指示器，用彩色圆环标记上一步落子
+   • 修复了落子或确认时棋盘短暂缩放的布局问题
+   Change: 落子指示器 → 最近一手指示器 (avoids implying move-suggestion)
+
+6. PROMOTIONAL TEXT (170 char max)
+   与五子棋不同，Pente 加入了独特的夹吃规则——用你的棋子夹住对手的一对棋子即可吃掉！直接在 iMessage 中与好友对战，体验不一样的策略棋。
+   Change: added 直接 for clarity
+
+
+Please check:
+[ ] Do the translations sound natural?
+[ ] Is the capture mechanic (夹吃) explained clearly?
+[ ] Is it clear this is NOT standard 五子棋?
+[ ] Any awkward phrasing or cultural issues?
+[ ] Are the keywords good for discovery?
+
+Thank you!

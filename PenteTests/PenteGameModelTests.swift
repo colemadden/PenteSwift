@@ -495,7 +495,9 @@ final class PenteGameModelTests: XCTestCase {
         XCTAssertNil(gameModel.board[10][11])
         XCTAssertNil(gameModel.board[10][12])
         XCTAssertEqual(gameModel.capturedCount[.black], 1) // 1 pair
-        XCTAssertEqual(gameModel.lastCaptures.count, 0) // Cleared after confirm
+        // ADR-0042: the red "just captured" circles persist after confirm so
+        // both players can see what was taken; they clear on the next makeMove.
+        XCTAssertEqual(gameModel.lastCaptures.count, 2)
     }
     
     func testDelegateIntegration() {
@@ -986,5 +988,175 @@ final class PenteGameModelTests: XCTestCase {
             XCTAssertNil(bob.board[pending.row][pending.col],
                 "Bob should not have a pending move over a committed stone")
         }
+    }
+
+    // MARK: - Stone animation triggers (ADR-0033)
+
+    func testMakeMoveTriggersAppearAnimation() {
+        gameModel.currentPlayer = .black
+        gameModel.makeMove(row: 5, col: 5)
+
+        guard let anim = gameModel.animatingStone else {
+            XCTFail("makeMove should set animatingStone"); return
+        }
+        XCTAssertEqual(anim.pos, Position(row: 5, col: 5))
+        XCTAssertEqual(anim.player, .black)
+        XCTAssertTrue(anim.appearing)
+    }
+
+    func testUndoMoveTriggersDisappearAnimation() {
+        gameModel.currentPlayer = .black
+        gameModel.makeMove(row: 5, col: 5)
+        gameModel.undoMove()
+
+        guard let anim = gameModel.animatingStone else {
+            XCTFail("undoMove should set animatingStone"); return
+        }
+        XCTAssertEqual(anim.pos, Position(row: 5, col: 5))
+        XCTAssertFalse(anim.appearing)
+        XCTAssertNil(gameModel.pendingMove)
+    }
+
+    func testOpponentMoveArrivedAnimatesLastMove() {
+        gameModel.currentPlayer = .black
+        gameModel.makeMove(row: 9, col: 9)
+        gameModel.confirmMove()
+        gameModel.animatingStone = nil
+
+        gameModel.opponentMoveArrived()
+
+        guard let anim = gameModel.animatingStone else {
+            XCTFail("opponentMoveArrived should animate the last move"); return
+        }
+        XCTAssertEqual(anim.pos, Position(row: 9, col: 9))
+        XCTAssertTrue(anim.appearing)
+    }
+
+    func testLoadFromURLClearsStaleAnimation() {
+        gameModel.currentPlayer = .black
+        gameModel.makeMove(row: 5, col: 5)
+        XCTAssertNotNil(gameModel.animatingStone)
+
+        let url = URL(string: "pente://game?moves=B9,9;&current=White&capB=0&capW=0&state=playing")!
+        gameModel.loadFromURL(url)
+
+        XCTAssertNil(gameModel.animatingStone,
+            "stale animation position belongs to the pre-load board")
+    }
+
+    func testAnimateLastMoveArrivalIfFromOpponentGuardsOwnMove() {
+        gameModel.setPlayerAssignment(.black, blackPlayerID: "me")
+        gameModel.currentPlayer = .black
+        gameModel.makeMove(row: 5, col: 5)
+        gameModel.confirmMove()
+        gameModel.animatingStone = nil
+
+        // Last move is my own — replay would be noise.
+        gameModel.animateLastMoveArrivalIfFromOpponent()
+        XCTAssertNil(gameModel.animatingStone)
+    }
+
+    func testAnimateLastMoveArrivalIfFromOpponentFiresForOpponentMove() {
+        gameModel.setPlayerAssignment(.white, blackPlayerID: "someone-else")
+        gameModel.currentPlayer = .black
+        gameModel.canMakeMove = true
+        gameModel.makeMove(row: 5, col: 5)
+        gameModel.confirmMove()
+        gameModel.animatingStone = nil
+
+        gameModel.setPlayerAssignment(.white, blackPlayerID: "someone-else")
+        gameModel.animateLastMoveArrivalIfFromOpponent()
+
+        guard let anim = gameModel.animatingStone else {
+            XCTFail("opponent's last move should animate on open"); return
+        }
+        XCTAssertEqual(anim.pos, Position(row: 5, col: 5))
+        XCTAssertEqual(anim.player, .black)
+    }
+
+    // MARK: - Gold Send: pendingMoveWins covers both win conditions (ADR-0044)
+
+    func testPendingMoveWinsFalseForOrdinaryMove() {
+        gameModel.makeMove(row: 9, col: 9)
+        XCTAssertFalse(gameModel.pendingMoveWins)
+    }
+
+    func testPendingMoveWinsForFiveInARow() {
+        // Four committed black stones; pending fifth completes the row.
+        for col in 5...8 {
+            gameModel.currentPlayer = .black
+            gameModel.makeMove(row: 10, col: col)
+            gameModel.confirmMove()
+        }
+        gameModel.currentPlayer = .black
+        gameModel.makeMove(row: 10, col: 9)
+        XCTAssertTrue(gameModel.pendingMoveWins)
+    }
+
+    func testPendingMoveWinsForFifthCapturePair() {
+        // Black already holds four pairs; the pending move captures the fifth.
+        gameModel.capturedCount[.black] = 4
+        gameModel.currentPlayer = .black
+        gameModel.makeMove(row: 10, col: 9)
+        gameModel.confirmMove()
+        gameModel.currentPlayer = .white
+        gameModel.makeMove(row: 10, col: 10)
+        gameModel.confirmMove()
+        gameModel.currentPlayer = .white
+        gameModel.makeMove(row: 10, col: 11)
+        gameModel.confirmMove()
+        gameModel.currentPlayer = .black
+        gameModel.makeMove(row: 10, col: 12)
+
+        XCTAssertEqual(gameModel.pendingCaptures.count, 2, "precondition: capture pending")
+        XCTAssertNil(gameModel.winningLine, "precondition: not a row win")
+        XCTAssertTrue(gameModel.pendingMoveWins)
+    }
+
+    func testPendingMoveWinsFalseWithFourPairsAndNoCapture() {
+        gameModel.capturedCount[.black] = 4
+        gameModel.makeMove(row: 9, col: 9)
+        XCTAssertTrue(gameModel.pendingCaptures.isEmpty)
+        XCTAssertFalse(gameModel.pendingMoveWins)
+    }
+
+    // MARK: - Capture indication persistence (ADR-0042)
+
+    func testConfirmMoveKeepsLastCapturesVisible() {
+        gameModel.currentPlayer = .black
+        gameModel.makeMove(row: 10, col: 9)
+        gameModel.confirmMove()
+        gameModel.currentPlayer = .white
+        gameModel.makeMove(row: 10, col: 10)
+        gameModel.confirmMove()
+        gameModel.currentPlayer = .white
+        gameModel.makeMove(row: 10, col: 11)
+        gameModel.confirmMove()
+        gameModel.currentPlayer = .black
+        gameModel.makeMove(row: 10, col: 12)
+        gameModel.confirmMove()
+
+        // The red "just captured" circles must survive the confirm.
+        XCTAssertEqual(gameModel.lastCaptures.count, 2)
+        XCTAssertTrue(gameModel.lastCaptures.contains { $0.row == 10 && $0.col == 10 })
+        XCTAssertTrue(gameModel.lastCaptures.contains { $0.row == 10 && $0.col == 11 })
+    }
+
+    func testLoadFromURLRestoresLastCapturesFromReplay() {
+        // Final move B5,8 captures W5,6 + W5,7.
+        let url = URL(string: "pente://game?moves=B5,5;W5,6;W5,7;B5,8;&current=White&capB=0&capW=0&state=playing")!
+        gameModel.loadFromURL(url)
+
+        XCTAssertEqual(gameModel.lastCaptures.count, 2)
+        XCTAssertTrue(gameModel.lastCaptures.contains { $0.row == 5 && $0.col == 6 })
+        XCTAssertTrue(gameModel.lastCaptures.contains { $0.row == 5 && $0.col == 7 })
+    }
+
+    func testLoadFromURLClearsLastCapturesWhenFinalMoveDidNotCapture() {
+        // Capture happened mid-game; final move is quiet.
+        let url = URL(string: "pente://game?moves=B5,5;W5,6;W5,7;B5,8;W10,10;&current=Black&capB=0&capW=0&state=playing")!
+        gameModel.loadFromURL(url)
+
+        XCTAssertTrue(gameModel.lastCaptures.isEmpty)
     }
 }

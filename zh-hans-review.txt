@@ -1,0 +1,195 @@
+Pente — Simplified Chinese (zh-Hans) Translation Review
+========================================================
+
+Hi! Thanks for looking this over. Pente is a two-player board game played on
+a 19x19 grid. It's similar to Gomoku (五子棋) but with one big twist: you can
+CAPTURE opponent stones by sandwiching a pair of them between two of yours.
+The English name "Pente" comes from the Greek word for "five".
+
+How to win:
+  1. Get five of your stones in a row (五子连珠), OR
+  2. Capture five pairs of opponent stones (夹吃五对 = 10 stones total)
+
+Please check each string below for:
+  - Naturalness (does it sound like a native speaker wrote it?)
+  - Game-term accuracy (especially "capture" — we're using 夹吃)
+  - Any awkwardness or ambiguity
+  - Suggest a better phrasing if one comes to mind
+
+Write your comments in the [NOTES] line under each entry. Thanks!
+
+========================================================
+SECTION 1 — In-game UI (seen while playing)
+========================================================
+
+[1] English:  Pente
+    Chinese:  Pente
+    Context:  Title header at the top of the game screen. We chose to keep
+              the Latin brand name rather than invent a Chinese one.
+    [NOTES]
+
+[2] English:  Black
+    Chinese:  黑方
+    Context:  Label above the "Captures" counter for the Black player.
+              Appears as short column header next to a number.
+    [NOTES]
+
+[3] English:  White
+    Chinese:  白方
+    Context:  Same as above, for the White player.
+    [NOTES]
+
+[4] English:  Captures
+    Chinese:  夹吃
+    Context:  Label for the capture count display (e.g., "Captures: 2").
+              Key term — appears in many places. Does 夹吃 read naturally
+              as a noun/label here, or should it be 吃子?
+    [NOTES]
+
+[5] English:  Undo
+    Chinese:  撤销
+    Context:  Button to cancel a tentative move BEFORE sending it to the
+              opponent. Not a rewind-the-game feature — just "cancel this
+              placement I haven't committed yet". We chose 撤销 over 悔棋
+              because 悔棋 implies taking back a committed move.
+    [NOTES]
+
+[6] English:  Send
+    Chinese:  发送
+    Context:  Button to confirm and send your move to the opponent.
+    [NOTES]
+
+[7] English:  Waiting for opponent
+    Chinese:  等待对手落子
+    Context:  Status text shown after you've sent a move and are waiting
+              for the opponent's reply.
+    [NOTES]
+
+[8] English:  Your turn
+    Chinese:  该你了
+    Context:  Status text when it becomes your turn to play.
+    [NOTES]
+
+[9] English:  New Game
+    Chinese:  新对局
+    Context:  Button to start a fresh game.
+    [NOTES]
+
+[10] English: Black's turn
+     Chinese: 轮到黑方
+     Context: Status text shown while Black is deciding their move
+              (visible to the White player who is waiting).
+     [NOTES]
+
+[11] English: White's turn
+     Chinese: 轮到白方
+     Context: Same as above, for White.
+     [NOTES]
+
+[12] English: Black wins!
+     Chinese: 黑方胜！
+     Context: Win banner shown in the game when Black wins.
+     [NOTES]
+
+[13] English: White wins!
+     Chinese: 白方胜！
+     Context: Win banner shown in the game when White wins.
+     [NOTES]
+
+[14] English: Five in a row!
+     Chinese: 五子连珠！
+     Context: Subtitle under the win banner, describing HOW they won
+              (by getting 5 stones in a row).
+     [NOTES]
+
+[15] English: Five captures!
+     Chinese: 夹吃五对！
+     Context: Subtitle under the win banner, describing HOW they won
+              (by capturing 5 pairs = 10 stones).
+     [NOTES]
+
+========================================================
+SECTION 2 — iMessage bubble text (what the recipient sees in their messages)
+========================================================
+
+These strings appear in the message bubble in the Messages transcript —
+so they're shown OUTSIDE the game itself, right in the chat thread.
+
+[16] English: Pente
+     Chinese: Pente
+     Context: Title shown in the message bubble — the "caption" of the
+              iMessage preview. Same as the in-game title.
+     [NOTES]
+
+[17] English: Black's turn (Move 12)
+     Chinese: 轮到黑方（第 12 手）
+     Context: Message bubble subtitle when it's Black's turn.
+              The "12" is a move counter — please check the measure word
+              "手" is correct for chess/board-game moves.
+     [NOTES]
+
+[18] English: White's turn (Move 7)
+     Chinese: 轮到白方（第 7 手）
+     Context: Same as above, for White.
+     [NOTES]
+
+[19] English: Black wins by five in a row!
+     Chinese: 黑方以五子连珠获胜！
+     Context: Message bubble subtitle announcing a Black win by 5-in-a-row.
+     [NOTES]
+
+[20] English: White wins by five in a row!
+     Chinese: 白方以五子连珠获胜！
+     Context: Same, for White.
+     [NOTES]
+
+[21] English: Black wins by captures!
+     Chinese: 黑方以夹吃五对获胜！
+     Context: Message bubble subtitle announcing a Black win by captures.
+              Note: we expanded "captures" to "夹吃五对" (five pairs) here
+              since the full win condition is 5 captured pairs.
+     [NOTES]
+
+[22] English: White wins by captures!
+     Chinese: 白方以夹吃五对获胜！
+     Context: Same, for White.
+     [NOTES]
+
+========================================================
+SECTION 3 — Host app (the placeholder app outside iMessage)
+========================================================
+
+When someone opens "Pente" from the iPhone home screen (instead of from
+inside Messages), they see a simple screen telling them to use it in
+iMessage. These are the two strings on that screen.
+
+[23] English: Pente Game
+     Chinese: Pente 游戏
+     Context: Title on the placeholder home-screen app.
+     [NOTES]
+
+[24] English: Use this app in iMessage
+     Chinese: 请在"信息"中使用此 App
+     Context: Instruction text telling the user the game runs inside
+              iMessage. "信息" is the Chinese name of the Messages app
+              in iOS. "App" is kept in English per Apple's Chinese
+              style guide.
+     [NOTES]
+
+========================================================
+GENERAL QUESTIONS
+========================================================
+
+A. Overall tone — does the app sound polished and natural, or translated?
+   [NOTES]
+
+B. The capture term: we're using 夹吃 throughout. Is this the right term
+   for Chinese Pente players, or would 吃子 or something else be better?
+   (Pente's capture mechanic is a sandwich — place your stones on both
+   ends of a pair of opponent stones to remove them.)
+   [NOTES]
+
+C. Anything that stood out as strange, stiff, or wrong?
+   [NOTES]
+
+Thanks so much!

@@ -34,3 +34,12 @@ public enum WinMethod: String, Codable {
 public protocol GameMoveDelegate: AnyObject {
     func gameDidMakeMove()
 }
+
+public struct Position: Equatable, Hashable, Codable {
+    public let row: Int
+    public let col: Int
+    public init(row: Int, col: Int) {
+        self.row = row
+        self.col = col
+    }
+}

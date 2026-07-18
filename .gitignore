@@ -22,3 +22,4 @@ node_modules/
 *.rtf
 llm-council.sh
 pente-project-summary.md
+.codex/

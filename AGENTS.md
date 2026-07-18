@@ -1,6 +1,6 @@
-# CLAUDE.md
+# AGENTS.md
 
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+This file provides guidance to Codex (Codex.ai/code) when working with code in this repository.
 
 ## Code Minimization Rule (MANDATORY)
 
@@ -219,4 +219,4 @@ Repository: https://github.com/colemadden/PenteSwift.git
 
 ### App Store Connect API Access
 
-Credentials and API details are stored in `.claude/CLAUDE.md` (local, not committed to git). New sessions: check that file for API Key ID, Issuer ID, App ID, and usage instructions.
+Credentials and API details are stored in `.Codex/AGENTS.md` (local, not committed to git). New sessions: check that file for API Key ID, Issuer ID, App ID, and usage instructions.

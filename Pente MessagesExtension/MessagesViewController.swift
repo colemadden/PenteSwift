@@ -8,6 +8,13 @@ class MessagesViewController: MSMessagesAppViewController {
     private var hostingController: UIHostingController<PenteGameView>?
     let gameModel = PenteGameModel()
     private var currentSession: MSSession?
+    /// A message whose dispatch (send + insert) both failed, paired with the
+    /// `gameID` of the game it belongs to (ADR-0037). On next willBecomeActive we
+    /// re-dispatch only when `gameModel.gameID` (after loading the active game)
+    /// matches the cached `gameID` — UUID equality is stable across framework
+    /// reads in a way `MSSession ===` is not, so this guards against both
+    /// wrong-chat and wrong-game (same-chat multi-game) misrouting (ADR-0029).
+    private var pendingFailedMessage: (message: MSMessage, gameID: UUID)?
 
     /// Bundle that owns Localizable.xcstrings. In production this equals Bundle.main
     /// (the extension bundle), but in XCTest Bundle.main is the test runner, not the
@@ -21,6 +28,17 @@ class MessagesViewController: MSMessagesAppViewController {
 
         // Set up the delegate to handle moves
         gameModel.moveDelegate = self
+
+        // Wire the "New Game" button so it can rebuild a properly-configured game
+        // with the local participant ID as blackPlayerID — required for both ends
+        // to agree on player assignment in subsequent moves.
+        gameModel.newGameAction = { [weak self] in
+            guard let self = self, let conversation = self.activeConversation else { return }
+            let localParticipantID = conversation.localParticipantIdentifier.uuidString
+            self.gameModel.startNewGame(blackPlayerID: localParticipantID)
+            self.gameModel.setPlayerAssignment(.black, blackPlayerID: localParticipantID)
+            self.currentSession = MSSession()
+        }
     }
 
     private func setupGameView() {
@@ -67,20 +85,62 @@ class MessagesViewController: MSMessagesAppViewController {
         print("Extension becoming active")
         #endif
 
-        // Load game state from selected message
-        if let message = conversation.selectedMessage,
-           let url = message.url {
-            gameModel.loadFromURL(url)
-            assignPlayerRole(from: conversation)
-            // Reuse the existing session so all messages update together
-            currentSession = message.session
+        // Apple documents that MSMessagesAppViewController callbacks "can be called
+        // on any thread." Mutating @Published properties off-main leaves SwiftUI
+        // without a main-thread notification and the view fails to refresh. Hop
+        // to main when needed; stay synchronous when already on main so unit
+        // tests can assert on state immediately after this call returns.
+        let work: () -> Void = { [weak self] in
+            guard let self = self else { return }
+            // Load game state from selected message
+            if let message = conversation.selectedMessage,
+               let url = message.url {
+                self.gameModel.loadFromURL(url)
+                self.assignPlayerRole(from: conversation)
+                // Reuse the existing session so all messages update together
+                self.currentSession = message.session
+                // ADR-0033: open-from-thumbnail replay — scale-in the opponent's
+                // just-arrived move so it's obvious which stone is new.
+                self.gameModel.animateLastMoveArrivalIfFromOpponent()
+            } else {
+                // No existing game, start a new one - this player becomes black
+                let localParticipantID = conversation.localParticipantIdentifier.uuidString
+                self.gameModel.startNewGame(blackPlayerID: localParticipantID)
+                self.gameModel.setPlayerAssignment(.black, blackPlayerID: localParticipantID)
+                // Create a new session for this game
+                self.currentSession = MSSession()
+            }
+
+            // Retry any message whose dispatch failed last time we were active.
+            // Match on `gameID` (ADR-0037) — UUID equality is stable, unlike
+            // MSSession `===`, and uniqueness per game means a match implies same
+            // chat AND same game. The cache is *not* cleared on mismatch: if the
+            // user opens a different Pente game in the interim, the failed move
+            // waits in memory until they come back to the original chat. The
+            // cache is dropped only by a successful dispatch (clearCacheIfHolds)
+            // or by process termination.
+            if let pending = self.pendingFailedMessage,
+               let currentID = self.gameModel.gameID,
+               currentID == pending.gameID {
+                // Realign local state to what the cached message represents
+                // *before* dispatching. The earlier loadFromURL in this call
+                // rolled the model back to the opponent's last-seen position,
+                // which is the state from *before* the user's failed move.
+                // Reloading from the cached URL reapplies the failed move locally
+                // so the UI matches what we're about to redeliver — otherwise
+                // the user would look at a board missing their own move and
+                // could re-tap, producing a duplicate.
+                if let cachedURL = pending.message.url {
+                    self.gameModel.loadFromURL(cachedURL)
+                    self.assignPlayerRole(from: conversation)
+                }
+                self.dispatchMessage(pending.message, conversation: conversation)
+            }
+        }
+        if Thread.isMainThread {
+            work()
         } else {
-            // No existing game, start a new one - this player becomes black
-            let localParticipantID = conversation.localParticipantIdentifier.uuidString
-            gameModel.startNewGame(blackPlayerID: localParticipantID)
-            gameModel.setPlayerAssignment(.black, blackPlayerID: localParticipantID)
-            // Create a new session for this game
-            currentSession = MSSession()
+            DispatchQueue.main.async(execute: work)
         }
     }
 
@@ -95,10 +155,29 @@ class MessagesViewController: MSMessagesAppViewController {
         print("Received message")
         #endif
 
-        // Update game state from received message
-        if let url = message.url {
-            gameModel.loadFromURL(url)
-            assignPlayerRole(from: conversation)
+        // Apple documents that MSMessagesAppViewController callbacks "can be called
+        // on any thread." If didReceive arrives on a background thread, mutating
+        // @Published properties from there leaves SwiftUI without a main-thread
+        // notification, so the board doesn't refresh until something else (like
+        // willBecomeActive on a swipe-out/swipe-in) re-triggers a render. Hop to
+        // main when needed; stay synchronous when we're already on main so unit
+        // tests can assert on state immediately after this call returns.
+        let work: () -> Void = { [weak self] in
+            guard let self = self, let url = message.url else { return }
+            let priorMoveCount = self.gameModel.moveHistory.count
+            self.gameModel.loadFromURL(url)
+            self.assignPlayerRole(from: conversation)
+            // ADR-0038: opponent-move-arrival haptic. Only fire when the loaded
+            // state actually advanced — guards against redundant didReceive
+            // callbacks for the same message.
+            if self.gameModel.moveHistory.count > priorMoveCount {
+                self.gameModel.opponentMoveArrived()
+            }
+        }
+        if Thread.isMainThread {
+            work()
+        } else {
+            DispatchQueue.main.async(execute: work)
         }
     }
 
@@ -205,20 +284,61 @@ class MessagesViewController: MSMessagesAppViewController {
 
     private func sendMessage() {
         guard let conversation = activeConversation else { return }
+        // Lock the board until the opponent's reply lands (cleared by didReceive's
+        // loadFromURL) or the extension reactivates (cleared by willBecomeActive's
+        // loadFromURL). Set here, after the conversation guard, so unit tests that
+        // drive the model through its delegate without a live MSConversation are
+        // not gated by this flag. Skip on win — won-state UI handles the New Game
+        // flow separately and shouldn't be locked.
+        if case .playing = gameModel.gameState {
+            gameModel.awaitingOpponentReply = true
+        }
+        dispatchMessage(createMessage(), conversation: conversation)
+    }
 
-        let message = createMessage()
-
-        // Insert the message into the conversation
-        conversation.insert(message) { error in
-            if let error = error {
+    /// ADR-0029 dispatch ladder: try one-tap `send`, fall back to `insert` (compose
+    /// bar) on failure, and finally cache the message for retry on next
+    /// willBecomeActive if both fail. `confirmMove` has already mutated local state,
+    /// so silently dropping the message would diverge our view from the opponent's.
+    private func dispatchMessage(_ message: MSMessage, conversation: MSConversation) {
+        // Snapshot the gameID under which the message was dispatched. Even if the
+        // model's gameID later changes (extension reused for another game), the
+        // cache still binds this message to its original game.
+        let dispatchGameID = gameModel.gameID
+        conversation.send(message) { [weak self] error in
+            if error == nil {
+                DispatchQueue.main.async { self?.clearCacheIfHolds(message) }
+                return
+            }
+            #if DEBUG
+            print("send(_:) failed, falling back to insert: \(error!)")
+            #endif
+            conversation.insert(message) { [weak self] insertError in
+                if insertError == nil {
+                    // Insert succeeded — message is in the compose bar and the user
+                    // can recover by tapping iMessage Send. No further retry needed.
+                    DispatchQueue.main.async { self?.clearCacheIfHolds(message) }
+                    return
+                }
                 #if DEBUG
-                print("Error sending message: \(error)")
+                print("insert fallback also failed; cached for retry on next willBecomeActive: \(insertError!)")
                 #endif
+                guard let dispatchGameID = dispatchGameID else { return }
+                DispatchQueue.main.async {
+                    self?.pendingFailedMessage = (message, dispatchGameID)
+                }
             }
         }
+    }
 
-        // Dismiss the extension after sending
-        dismiss()
+    /// Drop the failed-message cache only when the dispatch we just succeeded with
+    /// is the very same `MSMessage` instance currently cached. Identity comparison
+    /// (`===`) avoids accidentally clearing a different game's pending retry when
+    /// an unrelated dispatch happens to succeed in this session.
+    private func clearCacheIfHolds(_ message: MSMessage) {
+        if pendingFailedMessage?.message === message {
+            pendingFailedMessage = nil
+        }
     }
 }
 
@@ -226,7 +346,6 @@ class MessagesViewController: MSMessagesAppViewController {
 
 extension MessagesViewController: GameMoveDelegate {
     func gameDidMakeMove() {
-        // Send the updated game state
         sendMessage()
     }
 }

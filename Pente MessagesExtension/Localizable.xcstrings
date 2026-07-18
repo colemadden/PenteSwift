@@ -1,6 +1,7 @@
 {
   "sourceLanguage" : "en",
   "strings" : {
+    "%lld" : {},
     "Captures" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -14,6 +15,143 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "吃对"
+          }
+        }
+      }
+    },
+    "New Game" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "New Game"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "新对局"
+          }
+        }
+      }
+    },
+    "Pente" : {
+      "comment" : "Title header in the game view. Brand kept in Latin across locales.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pente"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pente"
+          }
+        }
+      }
+    },
+    "Play Again" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Play Again"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "再来一局"
+          }
+        }
+      }
+    },
+    "Send" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Send"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "发送"
+          }
+        }
+      }
+    },
+    "Waiting for opponent" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Waiting for opponent"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "等待对手"
+          }
+        }
+      }
+    },
+    "YOU LOST!" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "YOU LOST!"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "你输了！"
+          }
+        }
+      }
+    },
+    "YOU WON!" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "YOU WON!"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "你赢了！"
+          }
+        }
+      }
+    },
+    "Your turn" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Your turn"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "轮到你"
           }
         }
       }
@@ -140,41 +278,6 @@
         }
       }
     },
-    "New Game" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "New Game"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "新对局"
-          }
-        }
-      }
-    },
-    "Pente" : {
-      "comment" : "Title header in the game view. Brand kept in Latin across locales.",
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Pente"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Pente"
-          }
-        }
-      }
-    },
     "player.black" : {
       "comment" : "Display label for the Black side. Used as capture-count header label. Wire format (Player.rawValue) is unrelated and must stay English.",
       "extractionState" : "manual",
@@ -207,23 +310,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "白方"
-          }
-        }
-      }
-    },
-    "Send" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Send"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "发送"
           }
         }
       }
@@ -263,36 +349,87 @@
         }
       }
     },
-    "Undo" : {
+    "tutorial.gotIt" : {
       "extractionState" : "manual",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Undo"
+            "value" : "Got it!"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "撤销"
+            "value" : "明白了！"
           }
         }
       }
     },
-    "Waiting for opponent" : {
+    "tutorial.rule.capture" : {
       "extractionState" : "manual",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Waiting for opponent"
+            "value" : "Sandwich a pair of enemy stones between yours to capture them."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "等待对手"
+            "value" : "夹住对方一对棋子即可吃掉（夹吃）。"
+          }
+        }
+      }
+    },
+    "tutorial.rule.five" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Five in a row wins."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "五子连珠获胜。"
+          }
+        }
+      }
+    },
+    "tutorial.rule.pairs" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Capturing five pairs also wins."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "夹吃五对同样获胜。"
+          }
+        }
+      }
+    },
+    "tutorial.title" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "How to Play"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "玩法说明"
           }
         }
       }
@@ -362,23 +499,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "白方胜！"
-          }
-        }
-      }
-    },
-    "Your turn" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Your turn"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "轮到你"
           }
         }
       }
