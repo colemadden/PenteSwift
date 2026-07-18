@@ -4,7 +4,7 @@
 
 - **App**: Pente (iMessage extension game)
 - **Bundle ID**: `colemadden.Pente` (host) / `colemadden.Pente.MessagesExtension` (extension)
-- **Current build target** (from `project.pbxproj`): v1.4 (build 7) — `MARKETING_VERSION=1.4`, `CURRENT_PROJECT_VERSION=7`, set in the uncommitted v1.4 working tree (2026-07-16). Last committed bump: `776d8b0` (v1.3 build 6, 2026-04-23).
+- **Current build target** (from `project.pbxproj`): v1.4 (build 7) — `MARKETING_VERSION=1.4`, `CURRENT_PROJECT_VERSION=7`, committed in `cffdfba` (2026-07-18) and submitted for App Store review the same day.
 - **Release status** (per repo docs and project-owner attestation, not an ASC API pull): `APP_STORE_SUBMISSION.md` attests v1.0 and v1.1 as Released (Aug 2025 / Mar 2026) and last documented v1.2 as "In Review" (Apr 2026). `FEATURE_ROADMAP.md` declares v1.3 SHIPPED 2026-04-24. v1.2's transition out of "In Review" and v1.3's release status are project-owner-attested via conversation; neither is captured by an ASC API pull in the repo. Authoritative state lives in App Store Connect (App ID `6748970073`).
 - **Repo**: https://github.com/colemadden/PenteSwift
 - **Owner**: Cole Madden
@@ -35,7 +35,7 @@ This app ships as an **iMessage extension**: two iOS users play asynchronously b
 | # | Goal | Status |
 |---|------|--------|
 | G1 | Ship a polished, GamePigeon-caliber Pente on iMessage. | Shipping since Aug 2025 (v1.0). v1.3 is the current public version. |
-| G2 | Reach the Chinese market, which is 82% of installs. | v1.3 target commit adds Simplified Chinese in-app; ASC listing-localization work queued. |
+| G2 | Reach the Chinese market, which is 82% of installs. | v1.3 adds Simplified Chinese in-app; zh-Hans ASC listing applied with the v1.4 submission (2026-07-18). |
 | G3 | Keep the codebase small enough that a single developer can evolve it autonomously. | ~1,270 LOC across extension + core. |
 | G4 | Keep infrastructure cost at zero (no backend). | Held: pure client-side, state lives in MSMessage URL. |
 | G5 | Preserve the *entire* feature set and design rationale so the app can be re-implemented on a different platform (e.g. WeChat) without archaeology. | This document + `docs/adr/` exist to satisfy this goal. |
@@ -346,7 +346,7 @@ Two separate kinds of fact here:
 | 1.1 | 3 | `423b75d` | 2026-03-02 | Released Mar 2026 (`APP_STORE_SUBMISSION.md`) | New icon set; `ITSAppUsesNonExemptEncryption=NO`. Includes prior player-assignment fix (`ec3b909`, Dec 2025) and dynamic-theme thumbnail. |
 | 1.2 | 5 | `72d99a2` | 2026-04-05 | Last documented as "In Review" (`APP_STORE_SUBMISSION.md`); subsequent disposition not in repo | PenteCore SwiftPM extraction; MSSession per game introduced. |
 | 1.3 | 6 | `776d8b0` | 2026-04-23 | SHIPPED 2026-04-24 per `FEATURE_ROADMAP.md` and project-owner conversation | Simplified Chinese localization; last-move blue/green rings; board layout stability ZStack. |
-| 1.4 | 7 | uncommitted (working tree) | 2026-07-16 | In development — not submitted | GamePigeon-ification: one-tap send + failure ladder (ADR-0029/0037), haptics (0034/0038), gold win ring (0019), tap-outside cancel (0030), single-slot status (0031/0040), win overlay + auto-send rematch (0032/0039), stone animation (0033), pinch-zoom (0041), capture-on-resume (0042), rules overlay (0043). |
+| 1.4 | 7 | `cffdfba` | 2026-07-18 | Submitted 2026-07-18, WAITING_FOR_REVIEW (AFTER_APPROVAL); zh-Hans ASC listing applied with this version | GamePigeon-ification: one-tap send + failure ladder (ADR-0029/0037), haptics (0034/0038), gold win ring (0019), tap-outside cancel (0030), single-slot status (0031/0040), win overlay + auto-send rematch (0032/0039), stone animation (0033), pinch-zoom (0041), capture-on-resume (0042), rules overlay (0043). |
 
 Cross-reference App Store Connect (App ID `6748970073`) via the ASC API endpoints in `.claude/CLAUDE.md` if you need the authoritative record.
 
@@ -359,7 +359,7 @@ Cross-reference App Store Connect (App ID `6748970073`) via the ASC API endpoint
 - **Team ID**: `SB4A7WG2KH`
 - **Vendor Number**: `93577601` (for Sales Reports API)
 - **API key**: `423RCYC29Y` (in `AuthKey_423RCYC29Y.p8`, gitignored)
-- Supported locales: en; zh-Hans in-app complete (landed in the v1.3 target commit); ASC listing localization queued to ride v1.4. Draft copy is in `zh-hans-asc-review.txt`; project-owner memory attests it was reviewed by a native speaker out of band, but no signed reviewer note is committed to the repo.
+- Supported locales: en; zh-Hans in-app complete (v1.3) and zh-Hans ASC listing live with the v1.4 submission (2026-07-18), copy applied verbatim from `zh-hans-asc-review.txt` (native-reviewed out of band). Future zh copy is QA'd by multi-LLM consensus per ADR-0045 — no per-release native-reviewer gate.
 
 ---
 
@@ -458,7 +458,7 @@ No analytics, no crash reporting, no error UI. If something goes wrong the user 
 
 ### 10.5 Internationalization debt
 
-- App Store listing localization (name/subtitle/description/screenshots) for zh-Hans is not yet live — draft copy is in `zh-hans-asc-review.txt`, queued to apply with v1.4. Native-reviewer signoff is owner-attested in agent memory but not present in any committed repo artifact.
+- zh-Hans listing text (name/subtitle/description/keywords/promo) applied with the v1.4 submission (2026-07-18). Localized zh screenshots deliberately skipped — the store falls back to en-US screenshots; add if conversion warrants. zh QA process is ADR-0045 (multi-LLM consensus).
 - `MSMessageTemplateLayout` subcaption asymmetry is documented but not resolved: a Chinese sender sending to an English receiver shows Chinese in the bubble. This is intrinsic to Messages and probably unfixable without switching to locale-neutral glyphs for all layout strings.
 
 ### 10.6 Product UX debt
