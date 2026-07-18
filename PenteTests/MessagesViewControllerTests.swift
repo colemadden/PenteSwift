@@ -473,6 +473,30 @@ final class MessagesViewControllerTests: XCTestCase {
         XCTAssertTrue(newMessage.session === existingSession, "Resumed game should reuse the session from the selected message")
     }
 
+    /// ADR-0046: didReceive must adopt the incoming message's session so a
+    /// reply after receiving game B's move posts under game B's session, not
+    /// the previously displayed game's.
+    func testDidReceiveAdoptsMessageSession() {
+        // Establish game A's session via willBecomeActive.
+        let sessionA = MSSession()
+        let messageA = MockMSMessageWithSession(session: sessionA)
+        messageA.mockURL = URL(string: "pente://game?moves=B9,9;&current=White&capB=0&capW=0&state=playing&gid=11111111-1111-1111-1111-111111111111")
+        mockConversation.mockSelectedMessage = messageA
+        viewController.willBecomeActive(with: mockConversation)
+
+        // Game B's move arrives while the extension is open.
+        let sessionB = MSSession()
+        let messageB = MockMSMessageWithSession(session: sessionB)
+        messageB.mockURL = URL(string: "pente://game?moves=B5,5;W6,6;&current=Black&capB=0&capW=0&state=playing&gid=22222222-2222-2222-2222-222222222222")
+        viewController.didReceive(messageB, conversation: mockConversation)
+
+        let reply = viewController.createMessage()
+        XCTAssertTrue(reply.session === sessionB,
+            "Reply after didReceive must use the received message's session")
+        XCTAssertFalse(reply.session === sessionA,
+            "Reply must not leak the previously displayed game's session")
+    }
+
     // MARK: - Memory Management Tests
 
     func testDelegateRetainCycle() {

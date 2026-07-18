@@ -37,7 +37,9 @@ class PenteGameModel: ObservableObject {
     /// Stable identifier for this game, persisted in URL state (ADR-0037). Set on
     /// `startNewGame`, propagated unchanged through every subsequent message, and
     /// restored from URL on `loadFromURL`. Used by the failed-send retry guard.
-    var gameID: UUID? = nil
+    /// @Published (ADR-0046) so the view can reset per-game state (zoom/pan)
+    /// when a different game loads into the same hosting controller.
+    @Published var gameID: UUID? = nil
     
     weak var moveDelegate: GameMoveDelegate?
     /// Set by `MessagesViewController` so the View's "New Game" button can start
@@ -253,6 +255,17 @@ class PenteGameModel: ObservableObject {
     
     func loadFromURL(_ url: URL) {
         guard let decoded = GameStateDecoder.decodeFromURL(url) else { return }
+
+        // ADR-0046: discard any tentative state belonging to the PRE-load
+        // board. A pending stone surviving a reload could be confirmed into
+        // the new game as a phantom move with stale captures; a surviving
+        // isNewGamePendingSend flag would block all moves on the loaded game.
+        // (The old board is replaced wholesale below, so the tentative stone
+        // itself vanishes with it — only the bookkeeping needs clearing.)
+        pendingMove = nil
+        pendingCaptures = []
+        isNewGamePendingSend = false
+
         // Assign board and moveHistory as close together as possible so any
         // intermediate SwiftUI render during decode sees a consistent
         // (board, moveHistory) pair — otherwise the last-move ring could

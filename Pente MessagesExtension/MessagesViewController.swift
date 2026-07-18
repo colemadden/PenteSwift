@@ -8,13 +8,15 @@ class MessagesViewController: MSMessagesAppViewController {
     private var hostingController: UIHostingController<PenteGameView>?
     let gameModel = PenteGameModel()
     private var currentSession: MSSession?
-    /// A message whose dispatch (send + insert) both failed, paired with the
-    /// `gameID` of the game it belongs to (ADR-0037). On next willBecomeActive we
-    /// re-dispatch only when `gameModel.gameID` (after loading the active game)
-    /// matches the cached `gameID` — UUID equality is stable across framework
-    /// reads in a way `MSSession ===` is not, so this guards against both
-    /// wrong-chat and wrong-game (same-chat multi-game) misrouting (ADR-0029).
-    private var pendingFailedMessage: (message: MSMessage, gameID: UUID)?
+    /// Messages whose dispatch (send + insert) both failed, keyed by the
+    /// `gameID` of the game each belongs to (ADR-0037). On willBecomeActive we
+    /// re-dispatch the entry matching `gameModel.gameID` (after loading the
+    /// active game) — UUID equality is stable across framework reads in a way
+    /// `MSSession ===` is not, so this guards against both wrong-chat and
+    /// wrong-game (same-chat multi-game) misrouting (ADR-0029). Keyed per game
+    /// (ADR-0046) so a double-failure in one game can never evict another
+    /// game's cached move.
+    private var pendingFailedMessages: [UUID: MSMessage] = [:]
 
     /// Bundle that owns Localizable.xcstrings. In production this equals Bundle.main
     /// (the extension bundle), but in XCTest Bundle.main is the test runner, not the
@@ -114,14 +116,16 @@ class MessagesViewController: MSMessagesAppViewController {
             // Retry any message whose dispatch failed last time we were active.
             // Match on `gameID` (ADR-0037) — UUID equality is stable, unlike
             // MSSession `===`, and uniqueness per game means a match implies same
-            // chat AND same game. The cache is *not* cleared on mismatch: if the
-            // user opens a different Pente game in the interim, the failed move
-            // waits in memory until they come back to the original chat. The
-            // cache is dropped only by a successful dispatch (clearCacheIfHolds)
-            // or by process termination.
-            if let pending = self.pendingFailedMessage,
-               let currentID = self.gameModel.gameID,
-               currentID == pending.gameID {
+            // chat AND same game. Non-matching entries stay cached: if the user
+            // opens a different Pente game in the interim, each failed move
+            // waits in its own per-game slot until they return to that game.
+            //
+            // The matching entry is REMOVED before dispatch (single-flight,
+            // ADR-0046): a second activation racing this one finds the slot
+            // empty and cannot double-dispatch the same message. If the retry
+            // double-fails again, the dispatch failure path re-caches it.
+            if let currentID = self.gameModel.gameID,
+               let cached = self.pendingFailedMessages.removeValue(forKey: currentID) {
                 // Realign local state to what the cached message represents
                 // *before* dispatching. The earlier loadFromURL in this call
                 // rolled the model back to the opponent's last-seen position,
@@ -130,11 +134,11 @@ class MessagesViewController: MSMessagesAppViewController {
                 // so the UI matches what we're about to redeliver — otherwise
                 // the user would look at a board missing their own move and
                 // could re-tap, producing a duplicate.
-                if let cachedURL = pending.message.url {
+                if let cachedURL = cached.url {
                     self.gameModel.loadFromURL(cachedURL)
                     self.assignPlayerRole(from: conversation)
                 }
-                self.dispatchMessage(pending.message, conversation: conversation)
+                self.dispatchMessage(cached, conversation: conversation)
             }
         }
         if Thread.isMainThread {
@@ -167,6 +171,11 @@ class MessagesViewController: MSMessagesAppViewController {
             let priorMoveCount = self.gameModel.moveHistory.count
             self.gameModel.loadFromURL(url)
             self.assignPlayerRole(from: conversation)
+            // ADR-0046: adopt the incoming message's session. Without this, a
+            // reply made after didReceive loads game B would post under game
+            // A's session and update the wrong transcript bubble when two
+            // Pente games share one chat.
+            self.currentSession = message.session
             // ADR-0038: opponent-move-arrival haptic. Only fire when the loaded
             // state actually advanced — guards against redundant didReceive
             // callbacks for the same message.
@@ -325,20 +334,19 @@ class MessagesViewController: MSMessagesAppViewController {
                 #endif
                 guard let dispatchGameID = dispatchGameID else { return }
                 DispatchQueue.main.async {
-                    self?.pendingFailedMessage = (message, dispatchGameID)
+                    self?.pendingFailedMessages[dispatchGameID] = message
                 }
             }
         }
     }
 
-    /// Drop the failed-message cache only when the dispatch we just succeeded with
-    /// is the very same `MSMessage` instance currently cached. Identity comparison
-    /// (`===`) avoids accidentally clearing a different game's pending retry when
-    /// an unrelated dispatch happens to succeed in this session.
+    /// Drop any cache entries holding the very same `MSMessage` instance that
+    /// just dispatched successfully. Identity comparison (`===`) avoids clearing
+    /// a different game's pending retry, and also defuses a stale failure
+    /// closure from an earlier attempt re-caching a message that has since
+    /// succeeded (ADR-0046).
     private func clearCacheIfHolds(_ message: MSMessage) {
-        if pendingFailedMessage?.message === message {
-            pendingFailedMessage = nil
-        }
+        pendingFailedMessages = pendingFailedMessages.filter { $0.value !== message }
     }
 }
 

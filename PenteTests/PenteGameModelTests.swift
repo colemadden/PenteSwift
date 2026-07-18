@@ -1074,6 +1074,50 @@ final class PenteGameModelTests: XCTestCase {
         XCTAssertEqual(anim.player, .black)
     }
 
+    // MARK: - loadFromURL discards tentative state (ADR-0046)
+
+    func testLoadFromURLDiscardsPendingTentativeState() {
+        // Tentative stone with a pending capture on the old board.
+        gameModel.currentPlayer = .black
+        gameModel.makeMove(row: 10, col: 9)
+        gameModel.confirmMove()
+        gameModel.currentPlayer = .white
+        gameModel.makeMove(row: 10, col: 10)
+        gameModel.confirmMove()
+        gameModel.currentPlayer = .white
+        gameModel.makeMove(row: 10, col: 11)
+        gameModel.confirmMove()
+        gameModel.currentPlayer = .black
+        gameModel.makeMove(row: 10, col: 12)
+        XCTAssertNotNil(gameModel.pendingMove)
+        XCTAssertEqual(gameModel.pendingCaptures.count, 2)
+
+        // A different game state arrives (bubble switch / didReceive).
+        let url = URL(string: "pente://game?moves=B9,9;&current=White&capB=0&capW=0&state=playing")!
+        gameModel.loadFromURL(url)
+
+        // No phantom move can be confirmed into the loaded game.
+        XCTAssertNil(gameModel.pendingMove)
+        XCTAssertTrue(gameModel.pendingCaptures.isEmpty)
+        let priorHistory = gameModel.moveHistory.count
+        gameModel.confirmMove() // must no-op
+        XCTAssertEqual(gameModel.moveHistory.count, priorHistory)
+    }
+
+    func testLoadFromURLClearsNewGamePendingSend() {
+        // New-game pending-send, then an existing game's bubble is opened.
+        gameModel.startNewGame(blackPlayerID: "me")
+        XCTAssertTrue(gameModel.isNewGamePendingSend)
+
+        let url = URL(string: "pente://game?moves=B9,9;&current=White&capB=0&capW=0&state=playing")!
+        gameModel.loadFromURL(url)
+
+        // The flag must not survive to block moves on the loaded game.
+        XCTAssertFalse(gameModel.isNewGamePendingSend)
+        gameModel.makeMove(row: 5, col: 5)
+        XCTAssertNotNil(gameModel.pendingMove)
+    }
+
     // MARK: - Gold Send: pendingMoveWins covers both win conditions (ADR-0044)
 
     func testPendingMoveWinsFalseForOrdinaryMove() {

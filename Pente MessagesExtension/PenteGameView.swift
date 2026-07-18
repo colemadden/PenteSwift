@@ -483,7 +483,15 @@ struct PenteBoardView: View {
                                   && gameModel.pendingMove?.row == anim.pos.row
                                   && gameModel.pendingMove?.col == anim.pos.col) ? 0.7 : 1.0,
                         appearing: anim.appearing,
-                        onFinished: { gameModel.animatingStone = nil }
+                        onFinished: {
+                            // ADR-0046: only clear the animation we own — a
+                            // stale timer from a superseded animation must not
+                            // clip a newer one mid-flight.
+                            if let cur = gameModel.animatingStone,
+                               cur.pos == anim.pos, cur.appearing == anim.appearing {
+                                gameModel.animatingStone = nil
+                            }
+                        }
                     )
                     .id("\(anim.pos.row)-\(anim.pos.col)-\(anim.appearing)")
                 }
@@ -530,6 +538,16 @@ struct PenteBoardView: View {
             )
             .clipped()
             .contentShape(Rectangle())
+            // ADR-0046: zoom/pan are per-game, not per-process. The hosting
+            // controller persists across activations, so without this a
+            // different game would inherit the previous game's viewport
+            // (contradicting ADR-0041's original reset assumption).
+            .onChange(of: gameModel.gameID) { _ in
+                zoomScale = 1
+                steadyZoom = 1
+                panOffset = .zero
+                steadyPan = .zero
+            }
         }
     }
 }
