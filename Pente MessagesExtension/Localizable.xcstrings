@@ -378,7 +378,7 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "夹住对方一对棋子即可吃掉（夹吃）。"
+            "value" : "将对方一对棋子夹在己方棋子之间，即可夹吃。"
           }
         }
       }
