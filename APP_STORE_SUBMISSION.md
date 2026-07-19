@@ -10,17 +10,23 @@ Operational reference for shipping Pente builds. Pairs with `docs/ARCHITECTURE.m
 | 1.1 | 3   | Released, Mar 2026 | prior revision of this file | Critical player-assignment fix; dynamic-theme bubble thumbnail; `ITSAppUsesNonExemptEncryption=NO`; new icon set. |
 | 1.2 | 5   | Last documented as "In Review" (Apr 2026) | prior revision of this file; not re-verified | PenteCore SwiftPM extraction; one MSSession per game; UI streamlining. |
 | 1.3 | 6   | SHIPPED 2026-04-24 | `FEATURE_ROADMAP.md` line 12; project-owner attestation in conversation | Simplified Chinese in-app localization (22 keys); last-move blue/green ring indicator; board layout stability ZStack. |
+| 1.4 | 7   | SHIPPED 2026-07-18 (submitted 18:09 UTC, approved + auto-released same day) | ASC API, session 2026-07-18 | GamePigeon-ification (ADRs 0029–0044): one-tap send + failure ladder, haptics, gold win signals, win overlay + auto-rematch, stone animation, pinch-zoom, capture previews/resume, rules card. **zh-Hans ASC listing went live with this version.** Shipped from commit `cffdfba`, tag `v1.4`. |
 
 (The earlier "v1.0 / v1.1 Released" entries originate in this file's pre-rewrite history; ASC has not been re-queried for this update. v1.2's actual disposition between "In Review" and any subsequent state is not recorded in repo. Run `GET /v1/builds?filter[app]=6748970073&sort=-uploadedDate` against ASC for authoritative state.)
 
-### v1.4 (in progress, not yet submitted)
+### v1.4.1 (READY TO SHIP — parked deliberately, 2026-07-18)
 
-Per `FEATURE_ROADMAP.md` §v1.4. Primary candidates:
+**State**: code-complete on `main` (tag `v1.4.1-ready`, commits `77d38ec` + `aa2112e`), version already bumped to 1.4.1 (build 8), 277/277 tests green, installed on both test phones. **Not yet archived, uploaded, or submitted** — parked to let v1.4 soak with real users first.
 
-- Pinch-to-zoom + pan board (carried from v1.3 plan).
-- Sound effects + haptics.
-- One-tap send (switch `conversation.insert` → `conversation.send`).
-- ASC listing localization for zh-Hans — draft copy lives at `zh-hans-asc-review.txt` (the file contains LLM-process notes; a native-reviewer signoff is not committed to the repo, though the project-owner memory entry "Pente v1.4 zh-Hans App Store copy ready" attests one was obtained out of band). Apply via ASC API when the v1.4 version is created.
+**What it contains** (full detail in `docs/adr/0046-v141-hardening-from-codex-review.md`):
+- Hardening from the post-ship Codex review: `loadFromURL` discards tentative state (phantom-move fix); `didReceive`/`willBecomeActive` adopt the message session only on successful decode; retry cache is per-game + single-flight; animation/zoom state guards.
+- Improved zh tutorial capture string (夹吃 as verb — ADR-0044 follow-up, Codex-consensus per ADR-0045).
+
+**To resume and ship** (everything else is already done — do NOT recreate metadata):
+1. `git log v1.4.1-ready` to confirm you're shipping the parked state (plus anything landed since).
+2. Run the test suite; archive/export/upload per "How to build and submit" below.
+3. Create the 1.4.1 `appStoreVersion` via ASC API, attach build 8, set What's New (en + zh; keep it short — "stability improvements" tier), submit. zh copy QA per ADR-0045 (multi-LLM consensus — no native-reviewer wait).
+4. No listing changes needed — zh-Hans listing shipped with v1.4.
 
 ## How to build and submit
 
