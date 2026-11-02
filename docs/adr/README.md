@@ -68,6 +68,7 @@ Backfilled ADRs (0001–0028) were reconstructed on 2026-04-24 from git history,
 | [0046](0046-v141-hardening-from-codex-review.md) | v1.4.1 hardening: load-state hygiene, session adoption, per-game single-flight retry, animation/zoom guards | Accepted | Codex post-ship review 2026-07-18 |
 | [0047](0047-iphone-duo-readiness-centered-full-bleed.md) | iPhone Duo readiness: iOS 27.1+ SDK, vertically centered stack, edge-pinned hosting + full-bleed dim overlays | Accepted | owner request 2026-11-01; Apple Duo guidance |
 | [0048](0048-app-store-screenshots-from-real-messages.md) | App Store screenshots captured from the real extension in Messages (local-only DEBUG hook), framed by script | Accepted | owner request 2026-11-01 |
+| [0049](0049-board-strokes-and-shadow-scale-with-cell.md) | Board ring/border widths and stone shadow offset scale with cell size (compact drawer proportions) | Accepted | owner report 2026-11-02 |
 
 ### Localization
 

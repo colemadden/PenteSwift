@@ -289,6 +289,10 @@ struct PenteBoardView: View {
                     let stoneDiameter = cellSize * 0.7
                     let captureRadius = cellSize * 0.2
                     let captureDiameter = cellSize * 0.4
+                    // Ring/border widths and the shadow offset scale with the cell, so a
+                    // shrunken board (compact drawer) keeps the same proportions: 2pt at
+                    // the ~22pt cell of an expanded 6.9" phone.
+                    let ring = cellSize * 0.09
                     let board = gameModel.board
                     let winningSet = Set(gameModel.winningLine ?? [])
                     // ADR-0033: while a stone is scale-animating IN, the overlay
@@ -360,8 +364,8 @@ struct PenteBoardView: View {
                                 // Shadow
                                 context.fill(
                                     Path(ellipseIn: CGRect(
-                                        x: center.x - stoneRadius + 2,
-                                        y: center.y - stoneRadius + 2,
+                                        x: center.x - stoneRadius + ring,
+                                        y: center.y - stoneRadius + ring,
                                         width: stoneDiameter,
                                         height: stoneDiameter
                                     )),
@@ -390,7 +394,7 @@ struct PenteBoardView: View {
                                             height: stoneDiameter
                                         )),
                                         with: .color(Color.gray.opacity(0.3)),
-                                        lineWidth: 0.5
+                                        lineWidth: ring / 4
                                     )
                                 }
 
@@ -415,7 +419,7 @@ struct PenteBoardView: View {
                                             height: stoneDiameter
                                         )),
                                         with: .color(.red),
-                                        lineWidth: 2
+                                        lineWidth: ring
                                     )
                                 } else if isWinning {
                                     context.stroke(
@@ -426,7 +430,7 @@ struct PenteBoardView: View {
                                             height: stoneDiameter
                                         )),
                                         with: .color(Color(red: 1.0, green: 0.84, blue: 0.0)),
-                                        lineWidth: 2.5
+                                        lineWidth: ring * 1.25
                                     )
                                 } else if let last = gameModel.moveHistory.last,
                                           last.row == row, last.col == col {
@@ -440,7 +444,7 @@ struct PenteBoardView: View {
                                             height: stoneDiameter
                                         )),
                                         with: .color(Color(.systemGreen)),
-                                        lineWidth: 2
+                                        lineWidth: ring
                                     )
                                 }
 
@@ -455,7 +459,7 @@ struct PenteBoardView: View {
                                             height: stoneDiameter
                                         )),
                                         with: .color(.blue),
-                                        lineWidth: 2
+                                        lineWidth: ring
                                     )
                                 }
                             }
