@@ -75,6 +75,20 @@ final class MessagesViewControllerTests: XCTestCase {
         XCTAssertTrue(gameModel.moveDelegate === viewController)
     }
 
+    /// ADR-0047: the hosting view is pinned to the controller view's edges, not
+    /// its safe area guide, so dim overlays can bleed full-screen (SwiftUI keeps
+    /// foreground content inside the safe area itself).
+    func testHostingViewPinnedToViewEdgesNotSafeArea() {
+        let hosted = viewController.children.first?.view
+        XCTAssertNotNil(hosted)
+        let pins = viewController.view.constraints.filter { $0.firstItem === hosted }
+        XCTAssertEqual(Set(pins.map(\.firstAttribute)), [.leading, .trailing, .top, .bottom])
+        XCTAssertTrue(pins.allSatisfy {
+            $0.secondItem === viewController.view && $0.secondAttribute == $0.firstAttribute
+                && $0.relation == .equal && $0.constant == 0
+        })
+    }
+
     // MARK: - Conversation Handling Tests
 
     func testWillBecomeActiveWithoutSelectedMessage() {

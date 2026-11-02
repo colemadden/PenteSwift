@@ -66,7 +66,8 @@ Backfilled ADRs (0001–0028) were reconstructed on 2026-04-24 from git history,
 | [0043](0043-first-launch-rules-overlay.md) | First-launch rules overlay, one card, UserDefaults flag | Accepted | FEATURE_ROADMAP §v1.4 item 7 |
 | [0044](0044-device-test-feedback-gold-send-capture-preview.md) | Gold Send for both win conditions; red capture-preview rings; tutorial copy | Accepted | device-test feedback 2026-07-18 |
 | [0046](0046-v141-hardening-from-codex-review.md) | v1.4.1 hardening: load-state hygiene, session adoption, per-game single-flight retry, animation/zoom guards | Accepted | Codex post-ship review 2026-07-18 |
-| [0046](0046-v141-hardening-from-codex-review.md) | v1.4.1 hardening: load-state hygiene, session adoption, per-game single-flight retry, animation/zoom guards | Accepted | Codex post-ship review 2026-07-18 |
+| [0047](0047-iphone-duo-readiness-centered-full-bleed.md) | iPhone Duo readiness: iOS 27.1+ SDK, vertically centered stack, edge-pinned hosting + full-bleed dim overlays | Accepted | owner request 2026-11-01; Apple Duo guidance |
+| [0048](0048-app-store-screenshots-from-real-messages.md) | App Store screenshots captured from the real extension in Messages (local-only DEBUG hook), framed by script | Accepted | owner request 2026-11-01 |
 
 ### Localization
 

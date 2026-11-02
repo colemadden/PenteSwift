@@ -61,7 +61,7 @@ This app ships as an **iMessage extension**: two iOS users play asynchronously b
 
 | Constraint | Source | Consequence |
 |---|---|---|
-| iOS 18+, Xcode 16, Swift 5.0 | `project.pbxproj`: `IPHONEOS_DEPLOYMENT_TARGET=18.5`, `SWIFT_VERSION=5.0` | No cross-platform frameworks. SwiftUI with iOS-18 APIs is fair game. |
+| iOS 18+, built with Xcode 27.1+ (iOS 27.1+ SDK), Swift 5.0 | `project.pbxproj`: `IPHONEOS_DEPLOYMENT_TARGET=18.5`, `SWIFT_VERSION=5.0`; ADR-0047 | No cross-platform frameworks. SwiftUI with iOS-18 APIs is fair game. Building on the 27.1+ SDK is what makes the app fill iPhone Duo's displays; layout must stay size-driven (no `UIScreen.main`, idiom, or orientation checks). |
 | iMessage extension sandbox | Apple Messages framework | Runs as `MSMessagesAppViewController`. Cannot access most system APIs. `Bundle.main` in XCTest is the test runner (see ADR-0023). |
 | MSMessage URL size constraints | Apple Messages framework | All game state must fit in a URL query string. A full 19×19 game move list is ~1 KB in the current encoding, comfortably under any documented or observed limit. No fallback path exists if a future game variant or addition ever grows the URL past Apple's serializer tolerance. |
 | No backend / no persistence outside the thread | Self-imposed (G4) | Resuming a game is only possible from a message in the conversation. Lose the thread → lose the game. |
@@ -316,7 +316,7 @@ The bubble shows a 300×300 image. We render *both* a light and a dark variant a
 
 ### 7.1 Build variants
 
-- **Simulator Debug** — `build_run_sim` via XcodeBuildMCP, default simulator `EF30FA9D-…` (iPhone 16). Defaults persisted in `~/.xcodebuildmcp/config.yaml`.
+- **Simulator Debug** — `build_sim` via XcodeBuildMCP, then `simctl install` the built `Pente.app` (XcodeBuildMCP's `build_run_sim` installs the bare `.appex` as a fake app — don't use it for this scheme). Test in an iOS 27.0 simulator that has Messages (iPhone 18 Pro Max / iPad Pro 13"); the iPhone Duo simulator (iOS 27.1) has no Messages app. See `.claude/CLAUDE.md` for the current tooling notes.
 - **Device Debug** — physical device (`00008150-00121C682E91401C`, iOS 26.3.1) for iMessage extension validation. Requires paid developer program.
 - **Release** — Archive → Export IPA via `ExportOptions.plist` → `altool` upload to App Store Connect → ASC API creates version / attaches build / sets What's New / submits review.
 

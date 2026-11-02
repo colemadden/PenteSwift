@@ -128,8 +128,6 @@ struct PenteGameView: View {
             }
             .frame(height: 60)
             .padding(.bottom, 10)
-
-            Spacer()
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background(Color(UIColor.systemBackground))
@@ -148,6 +146,7 @@ struct PenteGameView: View {
             if isWon && !winOverlayDismissed {
                 ZStack {
                     Color.black.opacity(0.55)
+                        .ignoresSafeArea()
                         .onTapGesture { winOverlayDismissed = true }
                     VStack(spacing: 24) {
                         Text(winHeadline)
@@ -169,6 +168,7 @@ struct PenteGameView: View {
             if !hasSeenRules {
                 ZStack {
                     Color.black.opacity(0.55)
+                        .ignoresSafeArea()
                     VStack(alignment: .leading, spacing: 14) {
                         Text("tutorial.title")
                             .font(.title2)

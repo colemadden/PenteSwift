@@ -14,19 +14,19 @@ Operational reference for shipping Pente builds. Pairs with `docs/ARCHITECTURE.m
 
 (The earlier "v1.0 / v1.1 Released" entries originate in this file's pre-rewrite history; ASC has not been re-queried for this update. v1.2's actual disposition between "In Review" and any subsequent state is not recorded in repo. Run `GET /v1/builds?filter[app]=6748970073&sort=-uploadedDate` against ASC for authoritative state.)
 
-### v1.4.1 (READY TO SHIP — parked deliberately, 2026-07-18)
+### v1.5 (IN PREPARATION — 2026-11-01; absorbs the parked v1.4.1)
 
-**State**: code-complete on `main` (tag `v1.4.1-ready`, commits `77d38ec` + `aa2112e`), version already bumped to 1.4.1 (build 8), 277/277 tests green, installed on both test phones. **Not yet archived, uploaded, or submitted** — parked to let v1.4 soak with real users first.
+**State**: `MARKETING_VERSION = 1.5`, `CURRENT_PROJECT_VERSION = 9` in `project.pbxproj` (uncommitted as of 2026-11-01). ASC `appStoreVersion` **1.5 created** (id `f014f70d-63b3-4219-877b-9355a081b75d`, `PREPARE_FOR_SUBMISSION`, `AFTER_APPROVAL`). en-US screenshots **replaced** in all four sets (iPhone 6.9" ×7, iPad 13" ×4 — `marketing/screenshots/out/`, ADR-0048). zh-Hans still has no screenshot sets (falls back to en-US). **No build uploaded, no What's New set, not submitted.**
 
-**What it contains** (full detail in `docs/adr/0046-v141-hardening-from-codex-review.md`):
-- Hardening from the post-ship Codex review: `loadFromURL` discards tentative state (phantom-move fix); `didReceive`/`willBecomeActive` adopt the message session only on successful decode; retry cache is per-game + single-flight; animation/zoom state guards.
-- Improved zh tutorial capture string (夹吃 as verb — ADR-0044 follow-up, Codex-consensus per ADR-0045).
+**What it contains**:
+- Everything from the never-shipped v1.4.1 (tag `v1.4.1-ready`, ADR-0046): load-state hygiene, decode-gated session adoption, per-game single-flight retry, animation/zoom guards, improved zh tutorial capture string.
+- iPhone Duo readiness (ADR-0047): built with Xcode 27.1+ so it fills both Duo displays; game stack vertically centered; dim overlays full-bleed.
 
-**To resume and ship** (everything else is already done — do NOT recreate metadata):
-1. `git log v1.4.1-ready` to confirm you're shipping the parked state (plus anything landed since).
-2. Run the test suite; archive/export/upload per "How to build and submit" below.
-3. Create the 1.4.1 `appStoreVersion` via ASC API, attach build 8, set What's New (en + zh; keep it short — "stability improvements" tier), submit. zh copy QA per ADR-0045 (multi-LLM consensus — no native-reviewer wait).
-4. No listing changes needed — zh-Hans listing shipped with v1.4.
+**To ship**:
+1. Commit + push; run both test suites.
+2. Archive with Xcode 27.1+ (27.2 on the build Mac), export, upload build 9 per "How to build and submit" below.
+3. Attach build 9 to version `f014f70d-…`, set What's New (en + zh; zh QA per ADR-0045), submit.
+4. Optional: iPhone Duo screenshots (1398×2034 / 2007×2853) once capturable — they earn the "iPhone Duo" badge; required for 27.1-SDK builds from April 2027.
 
 ## How to build and submit
 

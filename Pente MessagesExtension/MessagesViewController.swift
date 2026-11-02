@@ -54,12 +54,14 @@ class MessagesViewController: MSMessagesAppViewController {
         view.addSubview(hosting.view)
         hosting.view.translatesAutoresizingMaskIntoConstraints = false
 
-        // Set up constraints to fill the view with safe area
+        // Pin to the view's edges, not the safe area (ADR-0047): SwiftUI keeps
+        // foreground content inside the (possibly asymmetric, iPhone Duo) safe
+        // area itself, while backgrounds and dim overlays bleed to the edges.
         NSLayoutConstraint.activate([
-            hosting.view.leadingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.leadingAnchor),
-            hosting.view.trailingAnchor.constraint(equalTo: view.safeAreaLayoutGuide.trailingAnchor),
-            hosting.view.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor),
-            hosting.view.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor)
+            hosting.view.leadingAnchor.constraint(equalTo: view.leadingAnchor),
+            hosting.view.trailingAnchor.constraint(equalTo: view.trailingAnchor),
+            hosting.view.topAnchor.constraint(equalTo: view.topAnchor),
+            hosting.view.bottomAnchor.constraint(equalTo: view.bottomAnchor)
         ])
 
         hosting.didMove(toParent: self)

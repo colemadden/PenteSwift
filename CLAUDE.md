@@ -94,6 +94,8 @@ Pure game logic with no UIKit/SwiftUI dependencies:
 
 ## Build Commands
 
+**Toolchain (as of 2026-11-01):** macOS 26.6 Tahoe, Xcode 27.2 (iOS 27.2 SDK). Building with Xcode 27.1+ is what makes the app native on iPhone Duo (ADR-0047). Agent tooling — Xcode 27's built-in MCP server, simulator tap/swipe control, gotchas — is documented in `.claude/CLAUDE.md` §"Agent Tooling".
+
 ### For Simulator Testing
 ```bash
 # Build for iOS Simulator

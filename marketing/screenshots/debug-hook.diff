@@ -1,0 +1,39 @@
+diff --git a/Pente MessagesExtension/MessagesViewController.swift b/Pente MessagesExtension/MessagesViewController.swift
+index 3212085..b8f3dd1 100644
+--- a/Pente MessagesExtension/MessagesViewController.swift	
++++ b/Pente MessagesExtension/MessagesViewController.swift	
+@@ -96,6 +96,9 @@ class MessagesViewController: MSMessagesAppViewController {
+         // tests can assert on state immediately after this call returns.
+         let work: () -> Void = { [weak self] in
+             guard let self = self else { return }
++            #if DEBUG && targetEnvironment(simulator)
++            if self.loadShotState(conversation) { return }
++            #endif
+             // Load game state from selected message. Session adoption is gated
+             // on decode success (ADR-0046) — same reasoning as didReceive: a
+             // failed decode must not pair the prior game's state with this
+@@ -219,7 +222,24 @@ class MessagesViewController: MSMessagesAppViewController {
+         #if DEBUG
+         print("Did transition to: \(presentationStyle == .compact ? "compact" : "expanded")")
+         #endif
++        #if DEBUG && targetEnvironment(simulator)
++        if presentationStyle == .expanded, let c = activeConversation { _ = loadShotState(c) }
++        #endif
++    }
++
++    #if DEBUG && targetEnvironment(simulator)
++    // SCREENSHOT HOOK — local only, never commit.
++    private func loadShotState(_ conversation: MSConversation) -> Bool {
++        guard let s = try? String(contentsOfFile: "/Users/colemadden/Code/Pente/build/shot-state.txt", encoding: .utf8),
++              !s.isEmpty,
++              let url = URL(string: s.trimmingCharacters(in: .whitespacesAndNewlines)
++                .replacingOccurrences(of: "__ME__", with: conversation.localParticipantIdentifier.uuidString)),
++              gameModel.loadFromURL(url) else { return false }
++        assignPlayerRole(from: conversation)
++        currentSession = MSSession()
++        return true
+     }
++    #endif
+ 
+     // MARK: - Message Creation
+ 
