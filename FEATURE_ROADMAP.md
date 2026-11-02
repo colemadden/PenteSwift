@@ -202,6 +202,18 @@ These derive from the GamePigeon Gomoku end-to-end walkthrough. Each is small bu
 
 ---
 
+## Parked (unscheduled)
+
+### 22. Lightweight Analytics via TelemetryDeck — PARKED 2026-11-02
+- **Why**: We can't see gameplay at all. App Store Connect's App Sessions report only counts opens of the home-screen placeholder app from opted-in users (week of 2026-10-19: 24 sessions / 5 devices vs ~117 installs) — Messages-extension play is invisible.
+- **Why TelemetryDeck**: hosted (no server to run or maintain), no IDFA/ATT prompt, Swift SDK explicitly handles app extensions. Free tier: 50k events/month for accounts created after 2026-07-01. Rejected: Firebase/Google (blocked in China); our own server (ADR-0020); CloudKit public DB (Apple-hosted and China-safe, but more code — keep as fallback if TelemetryDeck becomes unreachable in China).
+- **China reachability (tested 2026-11-02 via Globalping)**: `nom.telemetrydeck.com` answered from 16/17 mainland probes across China Mobile, Telecom, Unicom, Alibaba and Tencent (0.6–2.2s); google.com failed from the same region as a control. One China Telecom Chongqing probe resolved the host to `0.0.0.0` (looks like a local filter). Probes are fixed-line/datacenter, not cellular — re-test before building.
+- **Events (milestones only, ~4 per game)**: `gameStarted` (move 1 sent), `opponentReplied` (move 2 sent), `gameFinished` (+ win method, move count), `rematchStarted` (Play Again), `sendFellBack` (ADR-0029 insert fallback). "Played again within 7/28 days" comes from TelemetryDeck's retention view on the anonymous per-install ID — no extra event.
+- **Implementation notes**: The SDK flushes every 10s and the Messages drawer can close sooner, so request an immediate sync after each send and verify events arrive from the simulator.
+- **Needs**: owner creates the TelemetryDeck account + App ID; new ADR amending ADR-0020; privacy label ("Usage Data — Product Interaction, not linked, not tracking"); `PRIVACY.md`; tests.
+
+---
+
 ## v2.0 — Major Expansion
 
 ### 15. Standalone App Mode (Remove iMessage Dependency)
