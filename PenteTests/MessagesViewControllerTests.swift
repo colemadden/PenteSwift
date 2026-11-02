@@ -233,37 +233,6 @@ final class MessagesViewControllerTests: XCTestCase {
         XCTAssertNotNil(message.layout)
     }
 
-    // MARK: - Presentation Style Tests
-
-    func testPresentationStyleTransitions() {
-        viewController.willTransition(to: .compact)
-        viewController.didTransition(to: .compact)
-
-        viewController.willTransition(to: .expanded)
-        viewController.didTransition(to: .expanded)
-
-        XCTAssertTrue(true) // If we get here, no crashes occurred
-    }
-
-    // MARK: - Message Lifecycle Tests
-
-    func testDidStartSendingMessage() {
-        let mockMessage = MockMSMessage()
-        viewController.didStartSending(mockMessage, conversation: mockConversation)
-        XCTAssertTrue(true)
-    }
-
-    func testDidCancelSendingMessage() {
-        let mockMessage = MockMSMessage()
-        viewController.didCancelSending(mockMessage, conversation: mockConversation)
-        XCTAssertTrue(true)
-    }
-
-    func testDidResignActive() {
-        viewController.didResignActive(with: mockConversation)
-        XCTAssertTrue(true)
-    }
-
     // MARK: - Error Handling Tests
 
     func testInvalidURLHandling() {
@@ -528,6 +497,31 @@ final class MessagesViewControllerTests: XCTestCase {
         let reply = viewController.createMessage()
         XCTAssertTrue(reply.session === sessionA,
             "Undecodable didReceive must keep the prior game's session")
+    }
+
+    /// A bubble whose URL fails to decode must not trigger the failed-send
+    /// retry: the model still holds the previous game (possibly from another
+    /// chat), so its cached move would be dispatched into the wrong conversation.
+    func testUndecodableActivationDoesNotRetryPreviousGamesCachedMove() {
+        let gameID = UUID()
+        let messageA = MockMSMessage()
+        messageA.mockURL = URL(string: "pente://game?moves=B9,9;&current=White&capB=0&capW=0&state=playing&gid=\(gameID.uuidString)")
+        mockConversation.mockSelectedMessage = messageA
+        viewController.willBecomeActive(with: mockConversation)
+        XCTAssertEqual(viewController.gameModel.gameID, gameID)
+
+        let cached = MockMSMessage()
+        viewController.pendingFailedMessages[gameID] = cached
+
+        let otherConversation = MockMSConversation()
+        let undecodable = MockMSMessage()
+        undecodable.mockURL = URL(string: "pente://game") // no query items -> decode fails
+        otherConversation.mockSelectedMessage = undecodable
+        viewController.willBecomeActive(with: otherConversation)
+
+        XCTAssertTrue(viewController.pendingFailedMessages[gameID] === cached,
+            "Cached move must stay cached, not be dispatched into another conversation")
+        XCTAssertTrue(otherConversation.insertedMessages.isEmpty)
     }
 
     // MARK: - Memory Management Tests

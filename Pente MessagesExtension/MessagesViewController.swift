@@ -16,7 +16,7 @@ class MessagesViewController: MSMessagesAppViewController {
     /// wrong-game (same-chat multi-game) misrouting (ADR-0029). Keyed per game
     /// (ADR-0046) so a double-failure in one game can never evict another
     /// game's cached move.
-    private var pendingFailedMessages: [UUID: MSMessage] = [:]
+    var pendingFailedMessages: [UUID: MSMessage] = [:]
 
     /// Bundle that owns Localizable.xcstrings. In production this equals Bundle.main
     /// (the extension bundle), but in XCTest Bundle.main is the test runner, not the
@@ -110,6 +110,12 @@ class MessagesViewController: MSMessagesAppViewController {
                     // ADR-0033: open-from-thumbnail replay — scale-in the
                     // opponent's just-arrived move so it's obvious which is new.
                     self.gameModel.animateLastMoveArrivalIfFromOpponent()
+                } else {
+                    // Decode failed: the model still holds the PREVIOUS game,
+                    // possibly from another chat. Skip the retry below, or it
+                    // would match that game's cached move and dispatch it into
+                    // this conversation.
+                    return
                 }
             } else {
                 // No existing game, start a new one - this player becomes black
@@ -155,12 +161,6 @@ class MessagesViewController: MSMessagesAppViewController {
         }
     }
 
-    override func didResignActive(with conversation: MSConversation) {
-        #if DEBUG
-        print("Extension resigning active")
-        #endif
-    }
-
     override func didReceive(_ message: MSMessage, conversation: MSConversation) {
         #if DEBUG
         print("Received message")
@@ -195,30 +195,6 @@ class MessagesViewController: MSMessagesAppViewController {
         } else {
             DispatchQueue.main.async(execute: work)
         }
-    }
-
-    override func didStartSending(_ message: MSMessage, conversation: MSConversation) {
-        #if DEBUG
-        print("Started sending message")
-        #endif
-    }
-
-    override func didCancelSending(_ message: MSMessage, conversation: MSConversation) {
-        #if DEBUG
-        print("Cancelled sending message")
-        #endif
-    }
-
-    override func willTransition(to presentationStyle: MSMessagesAppPresentationStyle) {
-        #if DEBUG
-        print("Will transition to: \(presentationStyle == .compact ? "compact" : "expanded")")
-        #endif
-    }
-
-    override func didTransition(to presentationStyle: MSMessagesAppPresentationStyle) {
-        #if DEBUG
-        print("Did transition to: \(presentationStyle == .compact ? "compact" : "expanded")")
-        #endif
     }
 
     // MARK: - Message Creation
